@@ -25,7 +25,7 @@ def model_call_structured(system_message, user_message, text_format=None):
     )
     return response.output_parsed
     
-def model_call(system_message, user_message):
+def model_call_unstructured(system_message, user_message):
     response = client.responses.parse(
         model=model,
         input=[
