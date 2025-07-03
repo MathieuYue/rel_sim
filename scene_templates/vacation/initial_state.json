@@ -3,5 +3,7 @@
     "setting": "",
     "NPC": [],
     "current_scene": "",
-    "previous_summary": ""
+    "previous_summary": "",
+    "character_1_goal": "",
+    "character_2_goal": ""
 }

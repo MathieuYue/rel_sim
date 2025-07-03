@@ -6,11 +6,13 @@ class SceneSchema(BaseModel):
     NPC: list[str]
     current_scene: str
     previous_summary: str
+    character_1_goal: str
+    character_2_goal: str
 
 class ActionSchema(BaseModel):
     narrative: str
     choices: list[str]
-    character_name: str
+    character_uuid: str
 
 class ConversationSchema(BaseModel):
     narrative: str

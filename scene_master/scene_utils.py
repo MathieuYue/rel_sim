@@ -21,8 +21,3 @@ def list_to_string(lst):
     """
     return "\n".join(str(item) for item in lst)
 
-def history_to_str(history):
-    hist_str = ""
-    for row in history:
-        hist_str += f"[{row[0]}]: {row[1]}\n"
-    return hist_str
