@@ -38,9 +38,8 @@ class SceneMaster():
         else:
             print("Error: model_call_structured returned None")
         action = ['Scene Master', self.scene_state.current_scene]
-        print(action)
-        self.scene_history.append(action)
-        return response
+        self.append_to_history(action)
+        return self.scene_state.current_scene
 
     def progress(self):
         prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "progress.txt")
@@ -53,7 +52,5 @@ class SceneMaster():
         print(response)
         return response
 
-
-    def get_state(self):
-        return self.scene_state
-
+    def append_to_history(self, action):
+        self.scene_history.append(action)
