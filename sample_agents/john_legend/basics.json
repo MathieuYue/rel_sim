@@ -1,0 +1,14 @@
+{
+    "first_name": "John",
+    "last_name": "Legend",
+    "age": 45,
+    "gender": "Male",
+    "nationality": "American",
+    "occupation": "Singer, Songwriter, Producer",
+    "birthplace": "Springfield, Ohio",
+    "birthdate": "December 28, 1978",
+    "personality": "Intellectual, passionate, and family-oriented. Known for his musical genius, activism, and strong family values. Has a calm and thoughtful demeanor.",
+    "interests": ["Music", "Activism", "Family", "Cooking", "Politics", "Education"],
+    "relationship_style": "Devoted, supportive, and emotionally intelligent. Values deep connection and mutual growth. Known for being very present and involved in family life.",
+    "communication_style": "Eloquent, thoughtful, and emotionally expressive. Often uses music and words to convey deep feelings. Very open about his love for family and important causes."
+} 
