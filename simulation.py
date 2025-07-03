@@ -26,16 +26,18 @@ for i in range(5):
     sm.append_to_history(0, sys_action.narrative)
     print("Scene Master:")
     print(sys_action.narrative)
-    print(utils.list_to_indexed_string(sys_action.choices))
+    print("Options: ")
+    print(utils.list_to_indexed_string_1_based(sys_action.choices))
     print("------------------------------------------------------")
     if sys_action.character_uuid == agent_1.agent_id:
         curr_agent = agent_1
     elif sys_action.character_uuid == agent_2.agent_id:
         curr_agent = agent_2
     agent_action = curr_agent.act(sm.scene_history, sys_action.narrative, sys_action.choices)
-    sm.append_to_history(curr_agent, sys_action.choices[agent_action.action_index])
+    sm.append_to_history(curr_agent, agent_action.action_index)
     print(curr_agent.name)
-    print(sys_action.choices[agent_action.action_index])
+    print("Chosen Action: " + sys_action.choices[agent_action.action_index])
+    print("Dialogue: " + agent_action.line)
 
 
 def get_info():

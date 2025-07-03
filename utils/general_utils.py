@@ -7,3 +7,7 @@ def history_to_str(history):
 def list_to_indexed_string(items):
 
     return '\n'.join(f"{i}. {item}" for i, item in enumerate(items))
+
+def list_to_indexed_string_1_based(items):
+
+    return '\n'.join(f"{i+1}. {item}" for i, item in enumerate(items))
