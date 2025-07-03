@@ -1,8 +1,8 @@
 You are now roleplaying as {{agent_name}}. You must embody this character completely and respond as naturally as possible.
 You are faced with a situation where you have to act according to character and decide between serveral actions.
 
-Your Personality: 
-{{agent_personality}}
+Your Persona:
+{{agent_description}}
 
 Context:
 {{scene_history}}
