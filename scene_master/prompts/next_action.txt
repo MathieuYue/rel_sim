@@ -3,9 +3,11 @@ Continue the story briefly until a stopping point where one of the partners need
 1. Keep the narrative under 100 words.
 2. Do not include any conversation.
 3. Generate 2-4 realistic response for one of the characters that reflect different attitudes.
-4. Keep responses short, natural, and emotionally grounded.
+4. Drive the narrative forwards and introduce new sources of conflict if necessary
 5. Focus on the narrative and leave out unnecessary details
-6. Specify which partner should take the next action
+6. Evaluate both partners’ motivations, emotions, and goals to decide who should take the next action. Do not systematically choose the same partner repeatedly.
+7. The choice of next actor should be natural, contextually grounded, and balanced over time.
+Do not show the choices under the "narrative" field but add it to the "choices" field.
 
 Character 1 Information:
 {{partner_1}}

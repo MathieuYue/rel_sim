@@ -60,15 +60,17 @@ class SceneMaster():
         else:
             raise ValueError("Response could not be converted to ActionSchema")
 
-        
-
     def append_to_history(self, type, action):
         source = ""
         if type == 0:
             source = "Scene Master"
-        elif type == 1:
-            source = self.agent_1.name
-        elif type == 2:
-            source = self.agent_2.name
+        else:
+            source = type.name
         self.scene_history.append([source, action])
     
+    def summarize(self):
+        pass
+
+    def next_scene(self):
+        pass
+
