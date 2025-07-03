@@ -4,7 +4,7 @@ Continue the story briefly until a stopping point where one of the partners need
 2. Do not include any conversation.
 3. Generate 2-4 realistic response for one of the characters that reflect different attitudes.
 4. Keep responses short, natural, and emotionally grounded.
-5. Focus on the narrative and leave out unnecessary details about the surroundings
+5. Focus on the narrative and leave out unnecessary details
 6. Specify which partner should take the next action
 
 Character 1 Information:
