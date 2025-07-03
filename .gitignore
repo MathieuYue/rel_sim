@@ -135,4 +135,8 @@ Thumbs.db
 Desktop.ini
 
 # macOS
-.DS_Store 
+.DS_Store
+
+# Local test scripts
+test.py
+test2.py 
