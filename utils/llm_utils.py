@@ -13,7 +13,7 @@ client = OpenAI(api_key=openai_api_key)
 
 model = "gpt-4o-mini"
 
-def model_call_structured(system_message, user_message, text_format=None):
+def model_call_structured(system_message, user_message, text_format):
 
     response = client.responses.parse(
         model=model,
