@@ -34,10 +34,11 @@ for i in range(5):
     elif sys_action.character_uuid == agent_2.agent_id:
         curr_agent = agent_2
     agent_action = curr_agent.act(sm.scene_history, sys_action.narrative, sys_action.choices)
-    sm.append_to_history(curr_agent, agent_action.action_index)
+    sm.append_to_history(curr_agent, agent_action.line)
     print(curr_agent.name)
     print("Chosen Action: " + sys_action.choices[agent_action.action_index])
     print("Dialogue: " + agent_action.line)
+print(utils.history_to_str(sm.scene_history))
 
 
 def get_info():
