@@ -1,9 +1,17 @@
-You are a story-planner. Suggest the most plausible next scene for the couple’s vacation story. 
+You are a reasoning engine responsible for maintaining and updating the state of a relationship scenario simulation between two characters.
 Incorporate a source of conflict.
 1. Keep the core conflict or situation intact
 2. Add specific details that make the scene feel personal to these characters
 3. The scene should be 100 words or less
 4. Don't include any conversation between the characters, just the scene itself
+5. Update the goals for each character
+6. Keep 'theme' and 'previous_summary' unchanged
+
+Character 1 Description:
+{{agent_1}}
+
+Character 2 Description:
+{{agent_2}}
 
 Current Scene State:
 {{scene_state}}

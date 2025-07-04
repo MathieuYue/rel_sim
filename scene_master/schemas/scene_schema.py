@@ -17,3 +17,6 @@ class ActionSchema(BaseModel):
 class ConversationSchema(BaseModel):
     narrative: str
     first_character_to_speak: str
+
+class SceneSummarySchema(BaseModel):
+    summmary: str

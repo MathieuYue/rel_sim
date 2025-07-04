@@ -13,18 +13,16 @@ agent_2 = RelationshipAgent(agent_2_path)
 
 sm = SceneMaster("scene_templates/vacation", agent_1, agent_2)
 sys_action = sm.initialize()
-
-agent_1.set_goal(sys_action.character_1_goal)
-agent_2.set_goal(sys_action.character_2_goal)
-print("Scene Master:")
+sm.append_to_history(0, sys_action.current_scene)
+print("[Scene Master]:")
 print(sys_action.current_scene)
 
 
-for i in range(5):
+for i in range(2):
     print("------------------------------------------------------")
     sys_action = sm.progress()
     sm.append_to_history(0, sys_action.narrative)
-    print("Scene Master:")
+    print("[Scene Master:]")
     print(sys_action.narrative)
     print("Options: ")
     print(utils.list_to_indexed_string_1_based(sys_action.choices))
@@ -35,11 +33,12 @@ for i in range(5):
         curr_agent = agent_2
     agent_action = curr_agent.act(sm.scene_history, sys_action.narrative, sys_action.choices)
     sm.append_to_history(curr_agent, agent_action.line)
-    print(curr_agent.name)
+    print("[" + curr_agent.name + "]")
     print("Chosen Action: " + sys_action.choices[agent_action.action_index])
     print("Dialogue: " + agent_action.line)
-print(utils.history_to_str(sm.scene_history))
 
+print(sm.summarize().summmary)
+print(sm.generate_next())
 
 def get_info():
     print("-----------------------------------------------------SCENE HISTORY-----------------------------------------------------")

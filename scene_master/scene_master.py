@@ -1,4 +1,4 @@
-from scene_master.schemas.scene_schema import SceneSchema, ActionSchema, ConversationSchema
+from scene_master.schemas.scene_schema import SceneSchema, ActionSchema, ConversationSchema, SceneSummarySchema
 import utils.general_utils as general_utils
 from utils.llm_utils import model_call_unstructured, model_call_structured
 import json
@@ -40,7 +40,7 @@ class SceneMaster():
             self.scene_state = response
         else:
             print("Error: model_call_structured returned None")
-        self.append_to_history(0, self.scene_state.current_scene)
+        # self.append_to_history(0, self.scene_state.current_scene)
         self.agent_1.set_goal(self.scene_state.character_1_goal)
         self.agent_2.set_goal(self.scene_state.character_2_goal)
         return self.scene_state
@@ -67,9 +67,47 @@ class SceneMaster():
         else:
             source = type.name
         self.scene_history.append([source, action])
+        return [source, action]
     
     def summarize(self):
-        pass
+        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "update_state.txt")
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            prompt = f.read()
+        state = self.scene_state.model_dump_json(indent=2)
+        prompt_filled = prompt.replace("{{scene_state}}", state)
+        scene_hist_str = general_utils.history_to_str(self.scene_history)
+        prompt_filled = prompt_filled.replace("{{scene_history}}", scene_hist_str)
+        
+        response = model_call_structured(prompt_filled, '', SceneSummarySchema)
+        if isinstance(response, SceneSummarySchema):
+            self.scene_state.previous_summary = response.summmary
+            return response
+        elif isinstance(response, dict):
+            return SceneSummarySchema(**response)
+        else:
+            raise ValueError("Response could not be converted to SceneSummarySchema")
+        
+
+    def generate_next(self):
+        self.scene_state.current_scene = ''
+        self.progression += 1
+        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "next_scene.txt")
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            prompt = f.read()
+        state = self.scene_state.model_dump_json(indent=2)
+        prompt_filled = prompt.replace("{{scene_state}}", state)
+        prompt_filled = prompt_filled.replace("{{agent_1}}", self.agent_1.description)
+        prompt_filled = prompt_filled.replace("{{agent_2}}", self.agent_2.description)
+        eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
+        prompt_filled = prompt_filled.replace("{{eligible_scenes}}", eligible_scenes)
+        print(prompt_filled)
+
+        response = model_call_structured(prompt_filled, '', SceneSchema)
+        if isinstance(response, SceneSchema):
+            self.scene_state = response
+            return response
+        else:
+            raise ValueError("Response could not be converted to SceneSchema")
 
     def next_scene(self):
         pass
