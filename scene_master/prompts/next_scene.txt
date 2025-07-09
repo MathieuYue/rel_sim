@@ -1,13 +1,16 @@
 You are a reasoning engine responsible for maintaining and updating the state of a relationship scenario simulation between two characters.
-Generate the next scene that the couples will experience. Incorporate a source of conflict.
-Rules:
-1. Keep the core conflict or situation intact
-2. Add specific details that make the scene feel personal to these characters
-3. The scene should be 100 words or less
-4. Don't include any conversation between the characters, just the scene itself
-5. Update the goals for each character
-6. Keep 'theme' and 'previous_summary' unchanged
-7. Only choose from the scene ideas outlined under "eligible next scenes"
+
+1. Select a plausible scene from the list of eligible scenes based on the summary of previous scenes and character descriptions. Output the chosen scene to 'scene_conflict'
+2. Elaborate on the scene to generate the next scene that the couples will experience.
+3. Evaluate if a time skip is appropriate before the new scene (e.g. "Later that evening," "The following weekend," "Two weeks later"). If so, incorporate it naturally at the start of the narrative to indicate progression.
+4. The scene must involve both characters interacting with each other directly. Do not generate scenes where one character acts alone or wanders off without the other.
+5. Keep the core conflict or situation consistent with the current storyline
+6. Add specific details that make the scene feel personal to these characters
+7. The scene should be 100 words or less
+8. Do not include any conversation or dialogue. Avoid unnecessary internal reflections or descriptive filler
+9. Update and output the goals for each character based on this new scene
+10. Do not change the ‘theme’ or ‘previous_summary’
+11. Output the generated next scene to 'current_scene'
 
 Character 1 Description:
 {{agent_1}}

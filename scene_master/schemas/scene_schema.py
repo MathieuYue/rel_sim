@@ -8,6 +8,7 @@ class SceneSchema(BaseModel):
     previous_summary: str
     character_1_goal: str
     character_2_goal: str
+    scene_conflict: str
 
 class ActionSchema(BaseModel):
     narrative: str

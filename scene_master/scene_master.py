@@ -52,6 +52,7 @@ class SceneMaster():
         scene_hist_str = general_utils.history_to_str(self.scene_history)
         prompt_filled = prompt.replace("{{scene_history}}", scene_hist_str)
         prompt_filled = prompt_filled.replace("{{partner_1}}", self.agent_1.description).replace("{{partner_2}}", self.agent_2.description)
+        prompt_filled = prompt_filled.replace("{{scene_conflict}}", self.scene_state.scene_conflict)
         response = model_call_structured(prompt_filled, '', ActionSchema)
         if isinstance(response, ActionSchema):
             return response
@@ -90,6 +91,9 @@ class SceneMaster():
 
     def next_scene(self):
         self.scene_state.current_scene = ''
+        self.scene_state.scene_conflict = ''
+        self.scene_state.character_1_goal = ''
+        self.scene_state.character_2_goal = ''
         self.scene_history = []
         self.progression += 1
         prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "next_scene.txt")

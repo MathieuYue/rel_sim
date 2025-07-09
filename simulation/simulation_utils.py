@@ -11,4 +11,4 @@ def print_formatted(source, output_str):
     print(f'{color}{output_str}\033[0m')
 
 def print_scene_separator(scene_ind):
-    print(f'------------------------------ SCENE {scene_ind} ------------------------------')
+    print(f'-------------------------------- SCENE {scene_ind} --------------------------------')
