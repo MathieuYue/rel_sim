@@ -100,12 +100,13 @@ class SceneMaster():
         prompt_filled = prompt_filled.replace("{{agent_2}}", self.agent_2.description)
         eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
         prompt_filled = prompt_filled.replace("{{eligible_scenes}}", eligible_scenes)
-        print("PORMPT FILLED   ------------------")
         print(prompt_filled)
-
         response = model_call_structured(prompt_filled, '', SceneSchema)
+        print(response)
         if isinstance(response, SceneSchema):
             self.scene_state = response
+            self.agent_1.set_goal(self.scene_state.character_1_goal)
+            self.agent_2.set_goal(self.scene_state.character_2_goal)
             return response
         else:
             raise ValueError("Response could not be converted to SceneSchema")

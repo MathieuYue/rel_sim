@@ -14,32 +14,30 @@ agent_2 = RelationshipAgent(agent_2_path)
 sm = SceneMaster("scene_templates/vacation", agent_1, agent_2)
 sys_action = sm.initialize()
 sm.append_to_history(0, sys_action.current_scene)
-print("[Scene Master]:")
-print(sys_action.current_scene)
+for scene_index in range(sm.total_scenes):
+    print("[Scene Master]:")
+    print(sys_action.current_scene)
+    for action_index in range(2):
+        print("------------------------------------------------------")
+        sys_action = sm.progress()
+        sm.append_to_history(0, sys_action.narrative)
+        print("[Scene Master:]")
+        print(sys_action.narrative)
+        print("Options: ")
+        print(utils.list_to_indexed_string_1_based(sys_action.choices))
+        print("------------------------------------------------------")
+        if sys_action.character_uuid == agent_1.agent_id:
+            curr_agent = agent_1
+        elif sys_action.character_uuid == agent_2.agent_id:
+            curr_agent = agent_2
+        agent_action = curr_agent.act(sm.scene_history, sys_action.narrative, sys_action.choices)
+        sm.append_to_history(curr_agent, agent_action.line)
+        print("[" + curr_agent.name + "]")
+        print("Chosen Action: " + sys_action.choices[agent_action.action_index])
+        print("Dialogue: " + agent_action.line)
+    sm.summarize()
+    sys_action = sm.generate_next()
 
-for i in range(2):
-    print("------------------------------------------------------")
-    sys_action = sm.progress()
-    sm.append_to_history(0, sys_action.narrative)
-    print("[Scene Master:]")
-    print(sys_action.narrative)
-    print("Options: ")
-    print(utils.list_to_indexed_string_1_based(sys_action.choices))
-    print("------------------------------------------------------")
-    if sys_action.character_uuid == agent_1.agent_id:
-        curr_agent = agent_1
-    elif sys_action.character_uuid == agent_2.agent_id:
-        curr_agent = agent_2
-    agent_action = curr_agent.act(sm.scene_history, sys_action.narrative, sys_action.choices)
-    sm.append_to_history(curr_agent, agent_action.line)
-    print("[" + curr_agent.name + "]")
-    print("Chosen Action: " + sys_action.choices[agent_action.action_index])
-    print("Dialogue: " + agent_action.line)
-
-print(sm.summarize().summmary)
-next = sm.generate_next()
-print("NEXT SCENE   ------------------")
-print(next)
 
 # def get_info():
 #     print("-----------------------------------------------------SCENE HISTORY-----------------------------------------------------")
