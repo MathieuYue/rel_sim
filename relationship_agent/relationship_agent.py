@@ -20,7 +20,8 @@ class RelationshipAgent():
         # self.description = info.replace("{{agent_name}}", self.)
         # self.description = self.description.replace("{{agent_personality}}", personality)
         # self.description = self.description.replace("{{agent_id}}", str(self.agent_id))
-        self.description = json.dumps(agent_data)
+        self.agent_state = agent_data
+        self.update_description()
         
 
     def act(self, scene_history, action_question, action_options):
@@ -44,4 +45,8 @@ class RelationshipAgent():
             raise ValueError("Response could not be converted to ActionSchema")
 
     def set_goal(self, goal):
-        self.description = self.description + "\n\nScene Goal:\n" + goal
+        self.agent_state["goal"] = goal
+        self.update_description()
+
+    def update_description(self):
+        self.description = json.dumps(self.agent_state)

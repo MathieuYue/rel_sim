@@ -17,7 +17,6 @@ sm.append_to_history(0, sys_action.current_scene)
 print("[Scene Master]:")
 print(sys_action.current_scene)
 
-
 for i in range(2):
     print("------------------------------------------------------")
     sys_action = sm.progress()
@@ -38,17 +37,19 @@ for i in range(2):
     print("Dialogue: " + agent_action.line)
 
 print(sm.summarize().summmary)
-print(sm.generate_next())
+next = sm.generate_next()
+print("NEXT SCENE   ------------------")
+print(next)
 
-def get_info():
-    print("-----------------------------------------------------SCENE HISTORY-----------------------------------------------------")
-    print(utils.history_to_str(sm.scene_history))
-    print("-----------------------------------------------------SCENE STATE-----------------------------------------------------")
-    print(sm.scene_state)
-    print("-----------------------------------------------------AGENT 1-----------------------------------------------------")
-    print(agent_1.description)
-    print("-----------------------------------------------------AGENT 2-----------------------------------------------------")
-    print(agent_2.description)
+# def get_info():
+#     print("-----------------------------------------------------SCENE HISTORY-----------------------------------------------------")
+#     print(utils.history_to_str(sm.scene_history))
+#     print("-----------------------------------------------------SCENE STATE-----------------------------------------------------")
+#     print(sm.scene_state)
+#     print("-----------------------------------------------------AGENT 1-----------------------------------------------------")
+#     print(agent_1.description)
+#     print("-----------------------------------------------------AGENT 2-----------------------------------------------------")
+#     print(agent_2.description)
 
 # get_info()
 

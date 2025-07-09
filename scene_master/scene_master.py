@@ -100,6 +100,7 @@ class SceneMaster():
         prompt_filled = prompt_filled.replace("{{agent_2}}", self.agent_2.description)
         eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
         prompt_filled = prompt_filled.replace("{{eligible_scenes}}", eligible_scenes)
+        print("PORMPT FILLED   ------------------")
         print(prompt_filled)
 
         response = model_call_structured(prompt_filled, '', SceneSchema)
