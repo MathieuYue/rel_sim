@@ -36,7 +36,7 @@ for scene_index in range(sm.total_scenes):
         print("Chosen Action: " + sys_action.choices[agent_action.action_index])
         print("Dialogue: " + agent_action.line)
     sm.summarize()
-    sys_action = sm.generate_next()
+    sys_action = sm.next_scene()
 
 
 # def get_info():

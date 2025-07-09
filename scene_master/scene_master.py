@@ -88,8 +88,9 @@ class SceneMaster():
             raise ValueError("Response could not be converted to SceneSummarySchema")
         
 
-    def generate_next(self):
+    def next_scene(self):
         self.scene_state.current_scene = ''
+        self.scene_history = []
         self.progression += 1
         prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "next_scene.txt")
         with open(prompt_path, "r", encoding="utf-8") as f:
@@ -100,9 +101,7 @@ class SceneMaster():
         prompt_filled = prompt_filled.replace("{{agent_2}}", self.agent_2.description)
         eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
         prompt_filled = prompt_filled.replace("{{eligible_scenes}}", eligible_scenes)
-        print(prompt_filled)
         response = model_call_structured(prompt_filled, '', SceneSchema)
-        print(response)
         if isinstance(response, SceneSchema):
             self.scene_state = response
             self.agent_1.set_goal(self.scene_state.character_1_goal)
@@ -110,7 +109,3 @@ class SceneMaster():
             return response
         else:
             raise ValueError("Response could not be converted to SceneSchema")
-
-    def next_scene(self):
-        pass
-
