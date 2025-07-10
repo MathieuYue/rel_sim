@@ -16,13 +16,7 @@ sm = SceneMaster("scene_templates/vacation", agent_1, agent_2)
 if __name__=="__main__":
     sim = Simulation(sm, agent_1, agent_2)
     sim.load_simulation('simulation_20250710_205641.json')
-    a = sim.agent_1
-    print(sim.agent_1.agent_id)
-    print(sim.agent_1.description)
-    print(sim.agent_1.agent_state)
-    # print(sim.agent_2.agent_id)
     
-    
-    # sim.run_auto(3)
+    sim.run_auto(3)
 
     # sim.run_auto(2)

@@ -49,7 +49,6 @@ class Simulation():
             # print(utils.list_to_indexed_string_1_based(self.sm_action.choices))
             print_formatted(0, utils.list_to_indexed_string_1_based(self.sm_action.choices))
             print_separator()
-            print(self.sm_action.character_uuid)
             if self.sm_action.character_uuid == self.agent_1.agent_id:
                 curr_agent = self.agent_1
                 agent_ind = 1
@@ -67,7 +66,10 @@ class Simulation():
 
     def run_scene_by_scene(self):
         # setup 
-        self.sm_action = self.scene_master.initialize()
+        if not self.from_save:
+            self.sm_action = self.scene_master.initialize()
+        else:
+            self.sm_action = self.scene_master.scene_state
         # main loop
         for scene_index in range(self.scene_master.total_scenes):
             print_scene_separator(scene_index + 1)
