@@ -1,0 +1,20 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "AgentActionSchema",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "action_index": {
+                    "type": "integer",
+                    "description": "The index corresponding to the chosen action option."
+                },
+                "line": {
+                    "type": "string",
+                    "description": "The dialogue or line that the agent speaks or performs for this action."
+                }
+            },
+            "required": ["action_index", "line"]
+        }
+    }
+}

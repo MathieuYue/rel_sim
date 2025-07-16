@@ -1,5 +1,6 @@
 import json
 import os
+from jinja2 import Template
 
 def load_name_and_personality(agent_json_path):
     """
@@ -16,3 +17,8 @@ def load_name_and_personality(agent_json_path):
     name = data.get("first_name")
     personality = data.get("personality")
     return (name, personality)
+
+def render_j2_template(template_content, context_dict):
+    template = Template(template_content)
+    return template.render(**context_dict)
+

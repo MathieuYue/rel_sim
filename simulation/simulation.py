@@ -4,6 +4,7 @@ from relationship_agent.relationship_agent import RelationshipAgent
 import utils.general_utils as utils
 from simulation.simulation_utils import print_separator, print_formatted, print_scene_separator
 import os
+import json
 
 class Simulation():
     def __init__(self, scene_master, agent_1, agent_2) -> None:
@@ -55,6 +56,8 @@ class Simulation():
             elif self.sm_action.character_uuid == self.agent_2.agent_id:
                 curr_agent = self.agent_2
                 agent_ind = 2
+            agent_reflection = curr_agent.reflect(self.scene_master.scene_history)
+            print(json.dumps(agent_reflection))
             agent_action = curr_agent.act(self.scene_master.scene_history, self.sm_action.narrative, self.sm_action.choices)
             self.scene_master.append_to_history(curr_agent, agent_action.line)
             print_formatted(agent_ind, "[" + curr_agent.name + "]")

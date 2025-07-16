@@ -1,13 +1,27 @@
 from scene_master.schemas.scene_schema import SceneSchema, ActionSchema, ConversationSchema, SceneSummarySchema
 import utils.general_utils as general_utils
-from utils.llm_utils import model_call_unstructured, model_call_structured
+from utils.llm_utils import model_call_structured, model_call_unstructured
 import json
 import os
 import scene_master.scene_utils as scene_utils
+from relationship_agent.agent_utils import render_j2_template
 
 
 class SceneMaster():
     def __init__(self, scene_template_path, agent_1, agent_2) -> None:
+
+        self.json_schemas = {}
+        schemas_dir = os.path.join(os.path.dirname(__file__), "json_schemas")
+        if os.path.isdir(schemas_dir):
+            for filename in os.listdir(schemas_dir):
+                if filename.endswith(".json"):
+                    schema_path = os.path.join(schemas_dir, filename)
+                    with open(schema_path, "r", encoding="utf-8") as f:
+                        try:
+                            self.json_schemas[filename] = json.load(f)
+                        except Exception as e:
+                            print(f"Error loading {filename}: {e}")
+
         self.scene_history = []
         self.progression = 0
         if scene_template_path:
@@ -25,6 +39,7 @@ class SceneMaster():
         self.total_scenes = len(self.scenes_array)
         self.agent_1 = agent_1
         self.agent_2 = agent_2
+        
 
     def initialize(self):
         prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "initialize.txt")
@@ -35,42 +50,70 @@ class SceneMaster():
         eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
         prompt_filled = prompt.replace("{{scene_state}}", state).replace("{{eligible_scenes}}", eligible_scenes)
         prompt_filled = prompt_filled.replace("{{partner_1}}", self.agent_1.description).replace("{{partner_2}}", self.agent_2.description)
-        response = model_call_structured(prompt_filled, "", SceneSchema)
-        if response is not None:
-            self.scene_state = response
+        
+        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["scene_schema.json"])
+        response_json = json.loads(response)
+        if isinstance(response_json, dict):
+            self.scene_state = SceneSchema(**response_json)
+            self.agent_1.set_goal(self.scene_state.character_1_goal)
+            self.agent_2.set_goal(self.scene_state.character_2_goal)
+            return self.scene_state
         else:
-            print("Error: model_call_structured returned None")
-        # self.append_to_history(0, self.scene_state.current_scene)
-        self.agent_1.set_goal(self.scene_state.character_1_goal)
-        self.agent_2.set_goal(self.scene_state.character_2_goal)
-        return self.scene_state
+            raise ValueError("Response could not be converted to SceneSchema")
+
+    
+    def generate_context(self):
+    # INSERT_YOUR_CODE
+        template_path = os.path.join(os.path.dirname(__file__), "prompts", "next_context.j2")
+        with open(template_path, "r", encoding="utf-8") as f:
+            template_str = f.read()
+        context = {
+            "agent_1_information": self.agent_1.agent_state,
+            "agent_1_emotion_state": self.agent_1.emotion_state,
+            "agent_2_information": self.agent_2.agent_state,
+            "agent_2_emotion_state": self.agent_2.emotion_state,
+            "conversation_history": self.scene_history,
+            "setting": self.scene_state
+        }
+
+        prompt = render_j2_template(template_str, context)
+
+        response = model_call_unstructured('', prompt)
+        return response
 
     def progress(self):
         prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "next_action.txt")
+        
         with open(prompt_path, "r", encoding="utf-8") as f:
             prompt = f.read()
+        
         scene_hist_str = general_utils.history_to_str(self.scene_history)
+        
         prompt_filled = prompt.replace("{{scene_history}}", scene_hist_str)
         prompt_filled = prompt_filled.replace("{{partner_1}}", self.agent_1.description).replace("{{partner_2}}", self.agent_2.description)
         prompt_filled = prompt_filled.replace("{{scene_conflict}}", self.scene_state.scene_conflict)
-        response = model_call_structured(prompt_filled, '', ActionSchema)
-        if isinstance(response, ActionSchema):
-            return response
-        elif isinstance(response, dict):
-            return ActionSchema(**response)
+        
+        response = model_call_unstructured('', user_message=prompt_filled)
+        try:
+            response_json = json.loads(response)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse model response as JSON: {e}\nRaw response:\n{response}")
+        if isinstance(response_json, dict):
+            return ActionSchema(**response_json)
         else:
             raise ValueError("Response could not be converted to ActionSchema")
 
     def append_to_history(self, type, action):
         source = ""
         if type == 0:
-            source = "Scene Master"
+            source = "Narrative"
         else:
             source = type.name
         self.scene_history.append([source, action])
         return [source, action]
     
     def summarize(self):
+        
         prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "update_state.txt")
         with open(prompt_path, "r", encoding="utf-8") as f:
             prompt = f.read()
@@ -79,14 +122,13 @@ class SceneMaster():
         scene_hist_str = general_utils.history_to_str(self.scene_history)
         prompt_filled = prompt_filled.replace("{{scene_history}}", scene_hist_str)
         
-        response = model_call_structured(prompt_filled, '', SceneSummarySchema)
-        if isinstance(response, SceneSummarySchema):
-            self.scene_state.previous_summary = response.summmary
-            return response
-        elif isinstance(response, dict):
-            return SceneSummarySchema(**response)
+        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["summary_schema.json"])
+        response_json = json.loads(response)
+        if isinstance(response_json, dict):
+            return SceneSummarySchema(**response_json)
         else:
-            raise ValueError("Response could not be converted to SceneSummarySchema")
+            raise ValueError("Response could not be converted to SummarySchema")
+        
         
 
     def next_scene(self):
@@ -105,11 +147,13 @@ class SceneMaster():
         prompt_filled = prompt_filled.replace("{{agent_2}}", self.agent_2.description)
         eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
         prompt_filled = prompt_filled.replace("{{eligible_scenes}}", eligible_scenes)
-        response = model_call_structured(prompt_filled, '', SceneSchema)
-        if isinstance(response, SceneSchema):
-            self.scene_state = response
+
+        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["scene_schema.json"])
+        response_json = json.loads(response)
+        if isinstance(response_json, dict):
+            self.scene_state = SceneSchema(**response_json)
             self.agent_1.set_goal(self.scene_state.character_1_goal)
             self.agent_2.set_goal(self.scene_state.character_2_goal)
-            return response
+            return self.scene_state
         else:
-            raise ValueError("Response could not be converted to SceneSchema")
+            raise ValueError("Response could not be converted to SummarySchema")

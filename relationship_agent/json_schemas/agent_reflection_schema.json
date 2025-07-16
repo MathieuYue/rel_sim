@@ -1,0 +1,43 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+      "name": "ReflectionSchema",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "emotional_reaction_summary": {
+            "type": "string",
+            "description": "A short description of how the agent emotionally reacted to the partner's action."
+          },
+          "change_in_trust": {
+            "type": "integer",
+            "description": "The amount the agent's trust changed as a result of the action. Can be negative or positive."
+          },
+          "change_in_resentment": {
+            "type": "integer",
+            "description": "The amount the agent's resentment changed as a result of the action. Can be negative or positive."
+          },
+          "mood_change": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The agent's current emotional tone or general affective state."
+          },
+          "memory_log_entry": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "New emotionally salient moments (positive or negative) that influence future trust, resentment, and decisions."
+          }
+        },
+        "required": [
+          "emotional_reaction_summary",
+          "change_in_trust",
+          "change_in_resentment"
+        ]
+      }
+    }
+  }
+  

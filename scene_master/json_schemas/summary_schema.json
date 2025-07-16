@@ -1,0 +1,16 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "SceneSummarySchema",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "summmary": {
+                    "type": "string",
+                    "description": "A concise summary of the scene's key events and developments."
+                }
+            },
+            "required": ["summmary"]
+        }
+    }
+}

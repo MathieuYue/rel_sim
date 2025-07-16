@@ -1,0 +1,21 @@
+You are simulating the internal thought process of a social agent in a relationship simulation.
+
+Use the information below to generate a structured internal reflection for the agent. The goal is to realistically model their emotional state, relational perception, and current social goals based on their personality, values, and recent interaction.
+
+[Your Agent Information]
+{{ agent_information }}
+
+[Context]: 
+{{ context }}
+[Recent Conversation]:
+{{ conversation_history }}
+
+Output the result as a valid dictionary in the following format, do not include any other words or literals:
+
+{
+  "current_emotions": [ "List the most prominent feelings right now" ],
+  "interpretation_of_partner_experience": "What does the agent think the other is feeling or thinking?",
+  "inner_thoughts": "What is on the agent's mind right now?",
+  "core_need_in_this_moment": "What does the agent emotionally want or fear?",
+  "social_goal": "What does the agent want to accomplish?"
+}

@@ -1,0 +1,27 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "ActionSchema",
+        "schema": {
+        "type": "object",
+        "properties": {
+        "narrative": {
+            "type": "string",
+            "description": "A short, concise story continuation ending where a meaningful decision is required from one character. Must be under 100 words and should not include dialogue or other character actions."
+        },
+        "choices": {
+            "type": "array",
+            "items": {
+            "type": "string"
+            },
+            "description": "2 to 4 realistic, personality-based action options for the chosen character. No dialogue or internal monologue."
+        },
+        "character_uuid": {
+            "type": "string",
+            "description": "The UUID of the character who is about to act next."
+        }
+        },
+        "required": ["narrative", "choices", "character_uuid"]
+        }
+    }
+}

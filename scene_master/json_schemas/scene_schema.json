@@ -1,0 +1,56 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "SceneSchema",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "theme": {
+                    "type": "string",
+                    "description": "The overall theme or narrative arc of the scene (e.g., 'vacation', 'conflict resolution')."
+                },
+                "setting": {
+                    "type": "string",
+                    "description": "The physical or contextual setting where the scene takes place."
+                },
+                "NPC": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of non-playable characters involved in the scene."
+                },
+                "current_scene": {
+                    "type": "string",
+                    "description": "Detailed description of the current scene's events."
+                },
+                "previous_summary": {
+                    "type": "string",
+                    "description": "A summary of what occurred in the previous scene."
+                },
+                "character_1_goal": {
+                    "type": "string",
+                    "description": "Current objective or desire of character 1."
+                },
+                "character_2_goal": {
+                    "type": "string",
+                    "description": "Current objective or desire of character 2."
+                },
+                "scene_conflict": {
+                    "type": "string",
+                    "description": "The central point of tension or conflict in the scene."
+                }
+            },
+            "required": [
+                "theme",
+                "setting",
+                "NPC",
+                "current_scene",
+                "previous_summary",
+                "character_1_goal",
+                "character_2_goal",
+                "scene_conflict"
+            ]
+        }
+    }
+}
