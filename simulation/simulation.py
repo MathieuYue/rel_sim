@@ -83,15 +83,15 @@ class Simulation():
             agent_action = curr_agent.make_choices(self.sm_action.narrative, inner_thoughts=agent_reflection["inner_thoughts"])
             # Add the agent's action to both agents' working memory
             narrative_with_action = simulation_utils.combine_narrative_action(self.sm_action.narrative, agent_name=curr_agent.name, action=agent_action['action'])
-            curr_agent.add_to_working_memory(text=narrative_with_action, memory_type="Memory")
+            curr_agent.add_to_working_memory(text=narrative_with_action, memory_type="Memory", emotion_embedding=agent_reflection["emotion_scores"], inner_thoughts=agent_reflection["inner_thoughts"])
             other_agent.add_to_working_memory(text=narrative_with_action, memory_type="Memory")
             # Append the agent's action to the scene history
             self.scene_master.append_to_history(curr_agent, agent_action["action"])
             print_formatted(agent_ind, "[" + curr_agent.name + "]")
             print_formatted(agent_ind, agent_action["action"])
         # Print the formatted working memory and scene history for debugging/inspection
-        print(self.agent_1.memory.format_working_memory())
-        print(self.agent_2.memory.format_working_memory())
+        print(self.agent_1.memory.working_memory)
+        print(self.agent_2.memory.working_memory)
         print(self.scene_master.scene_history)
 
     def run_scene_by_scene(self):
