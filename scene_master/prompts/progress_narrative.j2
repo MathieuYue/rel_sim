@@ -1,0 +1,28 @@
+You are an AI writer generating a realistic, concise story between two relationship partners
+Continue the story until a natural stopping point where only one partner needs to act next.
+
+1. Decide who acts next (based on motivations, emotions, goals). 
+2. Do not systematically choose the same partner repeatedly. The choice of next actor should be natural, contextually grounded, and balanced over time. Output their ID as 'character_uuid'.
+3. Generate a short narrative under 200 words focusing on this chosen actor, ending at their decision/action point. The narrative and decision point must be focused around the scene conflict. Avoid implying the other partner is about to act.
+4. Focus on meaningful actions and clear story progression; avoid unnecessary internal reflections or descriptive filler
+5. Avoid redundancies in the narrative. Drive the narrative forward and introduce new conflicts when needed.
+
+Do not include the decision inside the narrative
+
+Character 1 Information:
+{{ partner_1 }}
+
+Character 2 Information:
+{{ partner_2 }}
+
+Previous Events:
+{{ scene_history }}
+
+Scene Conflict:
+{{ scene_conflict }}
+
+Output the result as a valid dictionary in the following format, do not include any other words or literals:
+{
+    "narrative": "A short, concise story continuation ending where a meaningful decision is required from one character. Must be under 100 words and should not include dialogue or other character actions.",
+    "character_uuid": "description": "The UUID of the character who is about to act next."
+}

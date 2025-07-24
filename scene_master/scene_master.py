@@ -11,6 +11,9 @@ class SceneMaster():
     def __init__(self, scene_template_path, agent_1, agent_2) -> None:
 
         self.json_schemas = {}
+
+        self.prompts = general_utils.read_all_j2_prompts(os.path.join(os.path.dirname(__file__), "prompts"))
+
         schemas_dir = os.path.join(os.path.dirname(__file__), "json_schemas")
         if os.path.isdir(schemas_dir):
             for filename in os.listdir(schemas_dir):
@@ -42,16 +45,21 @@ class SceneMaster():
         
 
     def initialize(self):
-        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "initialize.txt")
-        with open(prompt_path, "r", encoding="utf-8") as f:
-            prompt = f.read()
+        template_content = self.prompts['initialize.j2']
 
         state = self.scene_state.model_dump_json(indent=2)
+
         eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
-        prompt_filled = prompt.replace("{{scene_state}}", state).replace("{{eligible_scenes}}", eligible_scenes)
-        prompt_filled = prompt_filled.replace("{{partner_1}}", self.agent_1.description).replace("{{partner_2}}", self.agent_2.description)
-        
-        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["scene_schema.json"])
+
+        context_dict = {
+            "scene_state": state,
+            "eligible_scenes": eligible_scenes,
+            "partner_1": self.agent_1.description,
+            "partner_2": self.agent_2.description
+        }
+
+        prompt = render_j2_template(template_content, context_dict)
+        response = model_call_unstructured('', user_message=prompt)
         response_json = json.loads(response)
         if isinstance(response_json, dict):
             self.scene_state = SceneSchema(**response_json)
@@ -82,18 +90,22 @@ class SceneMaster():
         return response
 
     def progress(self):
-        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "next_action.txt")
-        
-        with open(prompt_path, "r", encoding="utf-8") as f:
-            prompt = f.read()
-        
-        scene_hist_str = general_utils.history_to_str(self.scene_history)
-        
-        prompt_filled = prompt.replace("{{scene_history}}", scene_hist_str)
-        prompt_filled = prompt_filled.replace("{{partner_1}}", self.agent_1.description).replace("{{partner_2}}", self.agent_2.description)
-        prompt_filled = prompt_filled.replace("{{scene_conflict}}", self.scene_state.scene_conflict)
-        
-        response = model_call_unstructured('', user_message=prompt_filled)
+        template_content = self.prompts['progress_narrative.j2']
+
+        state = self.scene_state.model_dump_json(indent=2)
+
+        eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
+
+        context_dict = {
+            "partner_1": self.agent_1.description,
+            "partner_2": self.agent_2.description,
+            "scene_history": general_utils.history_to_str(self.scene_history),
+            "scene_conflict": self.scene_state.scene_conflict
+        }
+
+        prompt = render_j2_template(template_content, context_dict)
+
+        response = model_call_unstructured('', user_message=prompt)
         try:
             response_json = json.loads(response)
         except json.JSONDecodeError as e:

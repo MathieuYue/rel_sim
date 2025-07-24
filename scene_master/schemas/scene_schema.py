@@ -12,7 +12,6 @@ class SceneSchema(BaseModel):
 
 class ActionSchema(BaseModel):
     narrative: str
-    choices: list[str]
     character_uuid: str
 
 class ConversationSchema(BaseModel):

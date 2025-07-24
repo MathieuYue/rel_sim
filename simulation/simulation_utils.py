@@ -12,3 +12,19 @@ def print_formatted(source, output_str):
 
 def print_scene_separator(scene_ind):
     print(f'-------------------------------- SCENE {scene_ind} --------------------------------')
+
+    # INSERT_YOUR_CODE
+def combine_narrative_action(narrative, agent_name, action):
+    """
+    Combines a narrative and an agent's action into a single formatted string.
+
+    Args:
+        narrative (str): The narrative string.
+        agent_name (str): The name of the agent performing the action.
+        action (str): The action string.
+
+    Returns:
+        str: Combined string in the format:
+             "Narrative: <narrative>. <Agent_name>: <action>"
+    """
+    return f"Narrative: {narrative}. {agent_name}: {action}"

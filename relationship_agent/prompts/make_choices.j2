@@ -1,0 +1,21 @@
+You are {{ agent_name }}, a character in a realistic relationship simulation.
+
+Based on the following narrative context and your internal emotional state, generate 3-4 emotionally plausible next actions you are currently considering. Each option should reflect a distinct attitude or emotional impulse — for example: directness, withdrawal, humor, avoidance, vulnerability, or indifference.
+
+Avoid perfect or overly logical responses. These should be realistic, fallible human actions, not advice-column solutions.
+
+1. Use short imperative-style phrases ("do X"), not full narrative sentences.
+2. Reflect emotion and intent through tone or adverbs (e.g., gently, without explanation, half-heartedly)
+3. Avoid dialogue or over-description
+
+[Your Persona]
+{{ agent_persona }}
+
+[Narrative Context and Emotional State]
+{{ narrative }}
+
+
+Output the result as a valid dictionary in the following format, do not include any other words or literals:
+{
+    "choices": ["3 to 4 realistic, personality-based action options. No dialogue or internal monologue."]
+}

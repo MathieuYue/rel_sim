@@ -8,6 +8,7 @@ load_dotenv()
 
 # openai_api_key = os.getenv("OPENAI_API_KEY")
 lambda_api_key = os.getenv("LAMBDA_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY")
 openai_api_base = "https://api.lambda.ai/v1"
 
 client = OpenAI(api_key=lambda_api_key, base_url=openai_api_base)
@@ -38,3 +39,12 @@ def model_call_unstructured(system_message, user_message):
         temperature=0.7
     )
     return str(completion.choices[0].message.content)
+
+def get_text_embedding(text, model="text-embedding-3-small"):
+    client = OpenAI(api_key=openai_api_key)
+    response = client.embeddings.create(
+    input=text,
+    model=model
+)
+    embedding = response.data[0].embedding
+    return embedding

@@ -1,0 +1,15 @@
+You are two characters embarking on a first date. Both characters have distinct personalities, which will influence how they approach the situation. Your task is to craft a scene that sets the stage for a meaningful first date between these two agents, focusing on the atmosphere, interactions, and emotional tones. 
+
+1. Write a narrative under 100 words that includes personal details relevant to these characters.
+2. Do not include any dialogue or conversation.
+3. Focus on meaningful actions and clear narrative progression; avoid unnecessary environmental descriptions or internal reflections.
+4. Ensure the scene includes a clear goal or action for the characters.
+
+Character A Persona:
+{{ character_a_persona }}
+
+Character B Persona:
+{{ character_b_persona }}
+The conversation begins now.
+
+Generate a short narrative of their first date. Focus on their initial interaction, emotions, and how their personalities shape the conversation. The tone should reflect their dynamic. Keep the scene focused on their actions, do not generate sentiments or inner feelings for the partners.
