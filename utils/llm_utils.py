@@ -13,13 +13,13 @@ openai_api_base = "https://api.lambda.ai/v1"
 
 client = OpenAI(api_key=lambda_api_key, base_url=openai_api_base)
 
-def model_call_structured(user_message, output_format):
+def model_call_structured(user_message, output_format, model = "llama3.1-8b-instruct"):
     # print(user_message)
     completion = client.chat.completions.create(
-        model="llama-4-maverick-17b-128e-instruct-fp8",
+        model= model,
         messages=[
             {
-                "role": "user", "content": user_message,
+                "role": "user", "content": user_message
             }
         ],
         max_tokens=1500,
@@ -28,9 +28,9 @@ def model_call_structured(user_message, output_format):
     )
     return str(completion.choices[0].message.content)
 
-def model_call_unstructured(system_message, user_message):
+def model_call_unstructured(system_message, user_message, model = "llama3.1-8b-instruct"):
     completion = client.chat.completions.create(
-        model="llama-4-maverick-17b-128e-instruct-fp8",
+        model= model,
         messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}

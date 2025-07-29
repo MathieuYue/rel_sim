@@ -59,7 +59,7 @@ class SceneMaster():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-        response = model_call_unstructured('', user_message=prompt)
+        response = model_call_unstructured('', user_message=prompt, model='qwen3-32b-fp8')
         response_json = json.loads(response)
         if isinstance(response_json, dict):
             self.scene_state = SceneSchema(**response_json)
@@ -86,7 +86,7 @@ class SceneMaster():
 
         prompt = render_j2_template(template_str, context)
 
-        response = model_call_unstructured('', prompt)
+        response = model_call_unstructured('', prompt, model='qwen3-32b-fp8')
         return response
 
     def progress(self):
@@ -105,10 +105,11 @@ class SceneMaster():
 
         prompt = render_j2_template(template_content, context_dict)
 
-        response = model_call_unstructured('', user_message=prompt)
+        response = model_call_unstructured('', prompt, model='qwen3-32b-fp8')
         try:
             response_json = json.loads(response)
         except json.JSONDecodeError as e:
+            print(response)
             raise ValueError(f"Failed to parse model response as JSON: {e}\nRaw response:\n{response}")
         if isinstance(response_json, dict):
             return ActionSchema(**response_json)
@@ -134,7 +135,7 @@ class SceneMaster():
         scene_hist_str = general_utils.history_to_str(self.scene_history)
         prompt_filled = prompt_filled.replace("{{scene_history}}", scene_hist_str)
         
-        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["summary_schema.json"])
+        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["summary_schema.json"], model = 'qwen3-32b-fp8')
         response_json = json.loads(response)
         if isinstance(response_json, dict):
             return SceneSummarySchema(**response_json)
@@ -160,7 +161,7 @@ class SceneMaster():
         eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
         prompt_filled = prompt_filled.replace("{{eligible_scenes}}", eligible_scenes)
 
-        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["scene_schema.json"])
+        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["scene_schema.json"], model = 'qwen3-32b-fp8')
         response_json = json.loads(response)
         if isinstance(response_json, dict):
             self.scene_state = SceneSchema(**response_json)
