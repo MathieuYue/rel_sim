@@ -48,6 +48,23 @@ class Memory():
         return "\n\n".join(formatted)
 
     
+    def store_working_memory_to_memory_store(self):
+        """
+        Store all entries in working_memory that have an emotion_embedding into the memory_store.
+        Uses the text as the key and stores semantic_embedding, emotion_embedding, inner_thoughts, type, and agent.
+        """
+        for mem in self.working_memory:
+            text = mem.get("text")
+            emotion_embedding = mem.get("emotion_embedding")
+            if text is not None and emotion_embedding is not None:
+                semantic_embedding = llm_utils.get_text_embedding(text)
+                self.memory_store[text] = {
+                    "semantic_embedding": semantic_embedding,
+                    "emotion_embedding": emotion_embedding,
+                    "inner_thoughts": mem.get("inner_thoughts"),
+                    "type": mem.get("type"),
+                    "agent": mem.get("agent")
+                }
 
     # joy, acceptance, fear, surprise, sadness, disgust, anger, and anticipation
 

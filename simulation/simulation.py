@@ -70,7 +70,7 @@ class Simulation():
                 other_agent = self.agent_1
                 agent_ind = 2
             # Agent appraises the current scene history
-            agent_reflection = curr_agent.appraise(self.scene_master.scene_history)
+            agent_appraisal = curr_agent.appraise(self.scene_master.scene_history)
             # Add the narrative and agent's reflection to working memory
             # curr_agent.add_to_working_memory(
             #     text=self.sm_action.narrative,
@@ -80,10 +80,10 @@ class Simulation():
             # )
             # other_agent.add_to_working_memory(text=self.sm_action.narrative, memory_type = "Narrative")
             # Agent makes a choice/action
-            agent_action = curr_agent.make_choices(self.sm_action.narrative, inner_thoughts=agent_reflection["inner_thoughts"])
+            agent_action = curr_agent.make_choices(self.sm_action.narrative, appraisal=agent_appraisal)
             # Add the agent's action to both agents' working memory
             narrative_with_action = simulation_utils.combine_narrative_action(self.sm_action.narrative, agent_name=curr_agent.name, action=agent_action['action'])
-            curr_agent.add_to_working_memory(text=narrative_with_action, memory_type="Memory", emotion_embedding=agent_reflection["emotion_scores"], inner_thoughts=agent_reflection["inner_thoughts"])
+            curr_agent.add_to_working_memory(text=narrative_with_action, memory_type="Memory", emotion_embedding=agent_appraisal["emotion_scores"], inner_thoughts=agent_appraisal["inner_thoughts"])
             other_agent.add_to_working_memory(text=narrative_with_action, memory_type="Memory")
             # Append the agent's action to the scene history
             self.scene_master.append_to_history(curr_agent, agent_action["action"])

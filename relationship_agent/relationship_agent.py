@@ -1,3 +1,4 @@
+from ast import List
 import os, json
 from utils.llm_utils import model_call_unstructured, model_call_structured
 import utils.general_utils as general_utils
@@ -28,7 +29,12 @@ class RelationshipAgent():
         with open(os.path.join(agent_path, "basics.json"), 'r', encoding='utf-8') as f:
             agent_data = json.load(f)
 
-        self.memory = Memory()
+        id_mem_path = os.path.join(agent_path, "id_mem.json")
+        if os.path.isfile(id_mem_path):
+            
+            self.memory = Memory(id_mem_path)
+        else:
+            self.memory = Memory()
 
         memory_path = os.path.join(agent_path, "memories.json")
         if os.path.exists(memory_path):
@@ -56,23 +62,28 @@ class RelationshipAgent():
             agent=agent
         )
 
-    def make_choices(self, current_narrative, inner_thoughts):
+    def make_choices(self, current_narrative, appraisal):
         template_content = self.prompts['make_choice.j2']
+
+        retrievals = self.memory.get_top_memories_from_text(current_narrative, appraisal['emotion_scores'])
 
         # Prepare context for the template
         context_dict = {
             "agent_name": self.name,
-            "internal_thought": inner_thoughts,
+            "internal_thought": appraisal["inner_thoughts"],
             "agent_persona": self.agent_state,
+            "retrieved_memories": retrievals,
             "previous_narrative": self.memory.format_working_memory(),
             "current_narrative": current_narrative
         }
 
         prompt = render_j2_template(template_content, context_dict)
+
         response = model_call_unstructured('', prompt)
         self.emotion_state = json.loads(response)
         return self.emotion_state
 
+    #slightly deprecated, might go back to this version
     def act(self, scene_history, action_question, action_options):
         with open(os.path.join(os.path.dirname(__file__), "json_schemas", "agent_action_schema.json"), "r", encoding="utf-8") as f:
             agent_action_schema_json = json.load(f)
@@ -124,9 +135,27 @@ class RelationshipAgent():
 
         prompt = render_j2_template(template_content, context_dict)
 
-        response = model_call_unstructured('', prompt)
+        response = model_call_unstructured('', prompt, model='qwen3-32b-fp8')
         self.emotion_state = json.loads(response)
         return self.emotion_state
+
+    def batch_appraise_memory(self, memories, batch_size = 8):
+        sys_prompt = self.prompts['batch_appraisal.j2']
+        for batch_start in range(0, len(memories), batch_size):
+            memories_str = ""
+            batch = memories[batch_start:batch_start+batch_size]
+            for idx, memory in enumerate(batch):
+                memories_str += f"{idx}. {memory}\n"
+            print(f"Processing batch {batch_start // batch_size + 1}")
+            response = model_call_unstructured(sys_prompt, memories_str, 'qwen3-32b-fp8')
+            try:
+                response_json = json.loads(response)
+            except Exception as e:
+                print(f"Error parsing response to JSON: {e}")
+                response_json = None
+            print(response_json)
+            for idx, memory in enumerate(batch):
+                self.memory.add_memory(text = memory, emotion_embedding=response_json[str(idx)], memory_type='memory')
 
     def set_goal(self, goal):
         self.agent_state["goal"] = goal

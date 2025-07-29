@@ -10,7 +10,7 @@ agent_1 = RelationshipAgent(agent_1_path)
 agent_2 = RelationshipAgent(agent_2_path)
 
 # setup scene master
-sm = SceneMaster("scene_templates/vacation", agent_1, agent_2)
+sm = SceneMaster("scene_templates/work_stress", agent_1, agent_2)
 
 # run simulation
 if __name__=="__main__":
