@@ -21,6 +21,9 @@ class Simulation():
         """
         Runs the simulation automatically for all scenes, with a fixed number of interactions per scene.
         """
+        
+        print_formatted(0, "Theme: " + simulation_utils.snake_to_title(self.scene_master.scene_state.theme))
+
         # Setup: initialize or restore the scene master action
         if not self.from_save:
             self.sm_action = self.scene_master.initialize()
@@ -29,8 +32,10 @@ class Simulation():
             
         # Main loop over scenes
         start_ind = self.scene_master.progression
+
         for scene_index in range(start_ind, self.scene_master.total_scenes):
             print_scene_separator(scene_index + 1)
+            print_formatted(0, "Scene Conflict: " + self.scene_master.scene_state.scene_conflict)
             self.run_scene(num_interactions_per_scene)
             if scene_index == self.scene_master.total_scenes:
                 print("Simulation Ended")
@@ -89,10 +94,6 @@ class Simulation():
             self.scene_master.append_to_history(curr_agent, agent_action["action"])
             print_formatted(agent_ind, "[" + curr_agent.name + "]")
             print_formatted(agent_ind, agent_action["action"])
-        # Print the formatted working memory and scene history for debugging/inspection
-        print(self.agent_1.memory.working_memory)
-        print(self.agent_2.memory.working_memory)
-        print(self.scene_master.scene_history)
 
     def run_scene_by_scene(self):
         """

@@ -28,3 +28,16 @@ def combine_narrative_action(narrative, agent_name, action):
              "Narrative: <narrative>. <Agent_name>: <action>"
     """
     return f"Narrative: {narrative}. {agent_name}: {action}"
+
+def snake_to_title(snake_str):
+    """
+    Converts a snake_case string to Title Case with spaces.
+
+    Args:
+        snake_str (str): The input string in snake_case.
+
+    Returns:
+        str: The string converted to Title Case with spaces.
+    """
+    words = snake_str.split('_')
+    return ' '.join(word.capitalize() for word in words)
