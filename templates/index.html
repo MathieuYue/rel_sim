@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relationship Simulation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Relationship Simulation</h1>
+                <p>LLM-powered relationship dynamics simulation by ARC Lab</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Setup Panel -->
+            <div class="panel setup-panel" id="setupPanel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-cog"></i> Simulation Setup</h2>
+                </div>
+                <div class="panel-content">
+                    <div class="form-grid">
+                        <!-- Agent Selection -->
+                        <div class="form-group">
+                            <label for="agent1">First Agent:</label>
+                            <select id="agent1" class="form-select">
+                                <option value="">Select an agent...</option>
+                                {% for agent in agents %}
+                                <option value="{{ agent.id }}">{{ agent.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="agent2">Second Agent:</label>
+                            <select id="agent2" class="form-select">
+                                <option value="">Select an agent...</option>
+                                {% for agent in agents %}
+                                <option value="{{ agent.id }}">{{ agent.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Scenario Selection -->
+                        <div class="form-group">
+                            <label for="scenario">Scenario:</label>
+                            <select id="scenario" class="form-select">
+                                <option value="">Select a scenario...</option>
+                                {% for scenario in scenarios %}
+                                <option value="{{ scenario.id }}">{{ scenario.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Interactions per Scene -->
+                        <div class="form-group">
+                            <label for="interactions">Interactions per Scene:</label>
+                            <input type="number" id="interactions" class="form-input" value="5" min="1" max="20">
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="startSimBtn" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Start Simulation
+                        </button>
+                        <button id="loadSimBtn" class="btn btn-secondary">
+                            <i class="fas fa-folder-open"></i> Load Saved
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="panel control-panel" id="controlPanel" style="display: none;">
+                <div class="panel-header">
+                    <h2><i class="fas fa-gamepad"></i> Simulation Controls</h2>
+                </div>
+                <div class="panel-content">
+                    <div class="simulation-info" id="simulationInfo">
+                        <!-- Simulation info will be populated here -->
+                    </div>
+                    
+                    <div class="button-group">
+                        <button id="runAutoBtn" class="btn btn-success">
+                            <i class="fas fa-rocket"></i> Run Auto
+                        </button>
+                        <button id="runSceneBtn" class="btn btn-info">
+                            <i class="fas fa-step-forward"></i> Run Scene
+                        </button>
+                        <button id="saveSimBtn" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button id="resetSimBtn" class="btn btn-danger">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="panel results-panel" id="resultsPanel" style="display: none;">
+                <div class="panel-header">
+                    <h2><i class="fas fa-chart-line"></i> Simulation Results</h2>
+                    <div class="panel-actions">
+                        <button id="clearResultsBtn" class="btn btn-sm btn-outline">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="results-container" id="resultsContainer">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Simulations Modal -->
+            <div class="modal" id="savedSimModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-folder-open"></i> Load Saved Simulation</h3>
+                        <button class="modal-close" id="closeSavedModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="saved-simulations" id="savedSimulations">
+                            {% for save in saved_simulations %}
+                            <div class="saved-simulation-item" data-filename="{{ save.filename }}">
+                                <div class="saved-sim-info">
+                                    <h4>{{ save.name }}</h4>
+                                    <p>{{ save.agent_1 }} & {{ save.agent_2 }}</p>
+                                    <small>Progress: {{ save.progression }}/{{ save.total_scenes }}</small>
+                                </div>
+                                <button class="btn btn-sm btn-primary load-sim-btn">Load</button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Simulation Modal -->
+            <div class="modal" id="saveSimModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-save"></i> Save Simulation</h3>
+                        <button class="modal-close" id="closeSaveModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="saveFilename">Filename:</label>
+                            <input type="text" id="saveFilename" class="form-input" placeholder="Enter filename...">
+                        </div>
+                        <div class="button-group">
+                            <button id="confirmSaveBtn" class="btn btn-primary">Save</button>
+                            <button id="cancelSaveBtn" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>Running simulation...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 

@@ -64,9 +64,9 @@ class RelationshipAgent():
 
     def make_choices(self, current_narrative, appraisal):
         template_content = self.prompts['make_choice.j2']
-
+        
         retrievals = self.memory.get_top_memories_from_text(current_narrative, appraisal['emotion_scores'])
-
+        
         # Prepare context for the template
         context_dict = {
             "agent_name": self.name,
@@ -78,7 +78,7 @@ class RelationshipAgent():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-
+        print(prompt)
         response = model_call_unstructured('', prompt)
         self.emotion_state = json.loads(response)
         return self.emotion_state

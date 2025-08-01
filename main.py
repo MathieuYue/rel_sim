@@ -16,4 +16,4 @@ sm = SceneMaster("scene_templates/work_stress", agent_1, agent_2)
 if __name__=="__main__":
     sim = Simulation(sm, agent_1, agent_2)
     
-    sim.run_auto(5)     
+    sim.run_auto(5)

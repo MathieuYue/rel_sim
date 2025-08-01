@@ -104,17 +104,19 @@ class SceneMaster():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-
         response = model_call_unstructured('', prompt, model='qwen3-32b-fp8')
         try:
             response_json = json.loads(response)
         except json.JSONDecodeError as e:
+            print(prompt)
             print(response)
             raise ValueError(f"Failed to parse model response as JSON: {e}\nRaw response:\n{response}")
-        if isinstance(response_json, dict):
+        try:
             return ActionSchema(**response_json)
-        else:
-            raise ValueError("Response could not be converted to ActionSchema")
+        except Exception as e:
+            print(f"Error creating ActionSchema: {e}")
+            print(f"Raw response_json: {response_json}")
+            raise
 
     def append_to_history(self, type, action):
         source = ""
