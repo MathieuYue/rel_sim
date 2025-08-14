@@ -1,3 +1,4 @@
+/no_think
 You are an AI writer generating a realistic, concise story between two relationship partners
 Continue the story until a natural stopping point where only one partner needs to act next.
 
@@ -21,7 +22,12 @@ Previous Events:
 Scene Conflict:
 {{ scene_conflict }}
 
-Output the result as a valid dictionary in the following format, do not include any other words or literals:
+Output the result as **valid JSON**, ensuring:
+- All string values are enclosed in double quotes.
+- All internal double quotes are escaped with a backslash (\").
+- No extra text outside the JSON object.
+- No unquoted values.
+
 {
     "narrative": "A short, concise story continuation ending where a meaningful decision is required from one character. Must be under 100 words and should not include dialogue or other character actions.",
     "character_uuid": "The UUID of the character who is about to act next."

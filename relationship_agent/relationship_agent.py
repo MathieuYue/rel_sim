@@ -78,7 +78,6 @@ class RelationshipAgent():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-        print(prompt)
         response = model_call_unstructured('', prompt)
         self.emotion_state = json.loads(response)
         return self.emotion_state

@@ -41,6 +41,8 @@ class Simulation():
                 print("Simulation Ended")
                 break
             self.scene_master.summarize()
+            commit_score = self.scene_master.commitment_score(self.scene_master.summarize())
+            print(commit_score)
             self.sm_action = self.scene_master.next_scene()
 
     def run_scene(self, num_interactions):

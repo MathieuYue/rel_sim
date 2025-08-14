@@ -25,6 +25,13 @@ class SceneMaster():
                         except Exception as e:
                             print(f"Error loading {filename}: {e}")
 
+        self.sim_state = {
+            "scene_number": 1,
+            "relationship_stage": "initial_formation",
+            "commitment_score": None,
+            "milestones": set()
+        }
+
         self.scene_history = []
         self.progression = 0
         if scene_template_path:
@@ -144,31 +151,39 @@ class SceneMaster():
         else:
             raise ValueError("Response could not be converted to SummarySchema")
         
-        
+    def commitment_score(self, summary):
+        template_content = self.prompts['commitment.j2']
+        context_dict = {
+            "relationship_context": self.scene_history
+        }
+        prompt = render_j2_template(template_content, context_dict)
+        response = model_call_unstructured('', prompt, model='qwen3-32b-fp8')
+        return response
 
-    def next_scene(self):
-        self.scene_state.current_scene = ''
-        self.scene_state.scene_conflict = ''
-        self.scene_state.character_1_goal = ''
-        self.scene_state.character_2_goal = ''
-        self.scene_history = []
-        self.progression += 1
-        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "next_scene.txt")
-        with open(prompt_path, "r", encoding="utf-8") as f:
-            prompt = f.read()
-        state = self.scene_state.model_dump_json(indent=2)
-        prompt_filled = prompt.replace("{{scene_state}}", state)
-        prompt_filled = prompt_filled.replace("{{agent_1}}", self.agent_1.description)
-        prompt_filled = prompt_filled.replace("{{agent_2}}", self.agent_2.description)
-        eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
-        prompt_filled = prompt_filled.replace("{{eligible_scenes}}", eligible_scenes)
+    # def next_scene(self):
+    #     self.scene_state.current_scene = ''
+    #     self.scene_state.scene_conflict = ''
+    #     self.scene_state.character_1_goal = ''
+    #     self.scene_state.character_2_goal = ''
+    #     self.scene_history = []
+    #     self.progression += 1
+    #     prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "next_scene.txt")
+    #     with open(prompt_path, "r", encoding="utf-8") as f:
+    #         prompt = f.read()
+    #     state = self.scene_state.model_dump_json(indent=2)
+    #     prompt_filled = prompt.replace("{{scene_state}}", state)
+    #     prompt_filled = prompt_filled.replace("{{agent_1}}", self.agent_1.description)
+    #     prompt_filled = prompt_filled.replace("{{agent_2}}", self.agent_2.description)
+    #     eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
+    #     prompt_filled = prompt_filled.replace("{{eligible_scenes}}", eligible_scenes)
 
-        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["scene_schema.json"], model = 'qwen3-32b-fp8')
-        response_json = json.loads(response)
-        if isinstance(response_json, dict):
-            self.scene_state = SceneSchema(**response_json)
-            self.agent_1.set_goal(self.scene_state.character_1_goal)
-            self.agent_2.set_goal(self.scene_state.character_2_goal)
-            return self.scene_state
-        else:
-            raise ValueError("Response could not be converted to SummarySchema")
+    #     response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["scene_schema.json"], model = 'qwen3-32b-fp8')
+    #     response_json = json.loads(response)
+    #     if isinstance(response_json, dict):
+    #         self.scene_state = SceneSchema(**response_json)
+    #         self.agent_1.set_goal(self.scene_state.character_1_goal)
+    #         self.agent_2.set_goal(self.scene_state.character_2_goal)
+    #         return self.scene_state
+    #     else:
+    #         raise ValueError("Response could not be converted to SummarySchema")
+
