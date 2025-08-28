@@ -1,0 +1,38 @@
+You are a reasoning engine responsible for maintaining and updating the state of a relationship scenario simulation between two characters.
+
+1. Select a plausible scene from the list of eligible scenes based on the summary of previous scenes and character descriptions. Output the chosen scene to 'scene_conflict'
+2. Elaborate on the scene to generate the next scene that the couples will experience.
+3. Evaluate if a time skip is appropriate before the new scene (e.g. "Later that evening," "The following weekend," "Two weeks later"). If so, incorporate it naturally at the start of the narrative to indicate progression.
+4. The scene must involve both characters interacting with each other directly. Do not generate scenes where one character acts alone or wanders off without the other.
+5. Keep the core conflict or situation consistent with the current storyline
+6. Add specific details that make the scene feel personal to these characters
+7. The scene should be 100 words or less
+8. Do not include any conversation or dialogue. Avoid unnecessary internal reflections or descriptive filler
+9. Update and output the goals for each character based on this new scene
+10. Output the generated next scene to 'current_scene'
+
+Character 1 Description:
+{{partner_1}}
+
+Character 2 Description:
+{{partner_2}}
+
+Current Scene State:
+{{scene_state}}
+
+Eligible Next Scenes:
+{{eligible_scenes}}
+
+
+---
+Output the result as a valid dictionary in the following format, only output the dictionary, do not include any other words or literals:
+{
+  "theme": "<the turning point value of the chosen scene>",
+  "setting": "the setting in which the action of the scene takes place",
+  "NPC": ["<optional list>"],
+  "current_scene": "<newly written short narrative scene>",
+  "previous_summary": "",
+  "character_1_goal": "<specific actionable goal for Character 1>",
+  "character_2_goal": "<specific actionable goal for Character 2>",
+  "scene_conflict": "<the turning point value of the chosen scene>"
+}

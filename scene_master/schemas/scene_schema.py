@@ -19,4 +19,4 @@ class ConversationSchema(BaseModel):
     first_character_to_speak: str
 
 class SceneSummarySchema(BaseModel):
-    summmary: str
+    summary: str

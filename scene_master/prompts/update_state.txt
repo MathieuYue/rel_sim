@@ -7,3 +7,9 @@ Scene State:
 
 Events of Current Scene:
 {{scene_history}}
+
+---
+Output the result as a valid dictionary in the following format, only output the dictionary, do not include any other words or literals:
+{
+    "summary": "<string summary of the scene>"
+}

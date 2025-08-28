@@ -1,0 +1,33 @@
+# Core web framework
+Flask==3.0.0
+
+# OpenAI API client for LLM interactions
+openai==1.3.0
+
+# Data validation and serialization
+pydantic==2.5.0
+
+# Environment variable management
+python-dotenv==1.0.0
+
+# Template engine for Jinja2 templates
+Jinja2==3.1.2
+
+# Numerical computing and array operations
+numpy==1.24.3
+
+# JSON5 support for extended JSON parsing
+json5==0.9.14
+
+# Standard library imports (no need to include in requirements.txt):
+# - os
+# - json
+# - uuid
+# - datetime
+# - threading
+# - time
+# - random
+# - collections
+# - typing
+# - ast
+# - re

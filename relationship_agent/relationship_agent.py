@@ -9,7 +9,7 @@ from relationship_agent.agent_utils import render_j2_template
 from relationship_agent.memory import Memory
 
 class RelationshipAgent():
-    def __init__(self, agent_path) -> None:
+    def __init__(self, name, persona) -> None:
 
         self.json_schemas = {}
 
@@ -26,25 +26,32 @@ class RelationshipAgent():
                         except Exception as e:
                             print(f"Error loading {filename}: {e}")
 
-        with open(os.path.join(agent_path, "basics.json"), 'r', encoding='utf-8') as f:
-            agent_data = json.load(f)
-
-        id_mem_path = os.path.join(agent_path, "id_mem.json")
-        if os.path.isfile(id_mem_path):
-            
-            self.memory = Memory(id_mem_path)
-        else:
-            self.memory = Memory()
-
-        memory_path = os.path.join(agent_path, "memories.json")
-        if os.path.exists(memory_path):
-            self.memory.load_memory_store(memory_path)
-
-        self.name = agent_data.get("first_name") + " " + agent_data.get("last_name")
+        self.name = name
+        self.persona = persona
 
         self.agent_id = str(uuid.uuid4())
 
-        agent_data["agent_id"] = self.agent_id
+        agent_data = {
+            "name": name,
+            "persona": persona,
+            "agent_id": self.agent_id
+        }
+
+        # with open(os.path.join(agent_path, "basics.json"), 'r', encoding='utf-8') as f:
+        #     agent_data = json.load(f)
+
+        # id_mem_path = os.path.join(agent_path, "id_mem.json")
+        # if os.path.isfile(id_mem_path):
+            
+        #     self.memory = Memory(id_mem_path)
+        # else:
+        self.memory = Memory()
+
+        # memory_path = os.path.join(agent_path, "memories.json")
+        # if os.path.exists(memory_path):
+        #     self.memory.load_memory_store(memory_path)
+
+
         
         self.agent_state = agent_data
         self.emotion_state = []
@@ -65,14 +72,14 @@ class RelationshipAgent():
     def make_choices(self, current_narrative, appraisal):
         template_content = self.prompts['make_choice.j2']
         
-        retrievals = self.memory.get_top_memories_from_text(current_narrative, appraisal['emotion_scores'])
+        # retrievals = self.memory.get_top_memories_from_text(current_narrative, appraisal['emotion_scores'])
         
         # Prepare context for the template
         context_dict = {
             "agent_name": self.name,
             "internal_thought": appraisal["inner_thoughts"],
             "agent_persona": self.agent_state,
-            "retrieved_memories": retrievals,
+            # "retrieved_memories": retrievals,
             "previous_narrative": self.memory.format_working_memory(),
             "current_narrative": current_narrative
         }

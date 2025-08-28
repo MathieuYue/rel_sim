@@ -30,13 +30,13 @@ You are evaluating a person's commitment to their romantic partner based on two 
    - **8-9** - High: strong satisfaction, high investment, few alternatives considered.  
    - **10** - Very high: deeply satisfied, secure attachment, strongly invested, no interest in alternatives.
 
-3. **Output Format**
+Context: 
+{{ relationship_context }}
+
+Output the result as a valid dictionary in the following format, only output the dictionary, do not include any other words or literals:
 {
   "reasoning": "<short paragraph showing your theory-based thinking>",
   "commitment_score": <0-10>,
   "mapped_explanation": "<exact description from the score mapping>"
 }
 
----
-
-[Context: {{ relationship_context }}]

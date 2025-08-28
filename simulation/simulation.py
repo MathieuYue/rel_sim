@@ -1,5 +1,4 @@
-from openai.types.responses.response_code_interpreter_tool_call import Output
-from scene_master.scene_master import SceneMaster
+# from scene_master.scene_master import SceneMaster
 from relationship_agent.relationship_agent import RelationshipAgent
 from simulation import simulation_utils
 import utils.general_utils as utils
@@ -9,6 +8,9 @@ import json
 
 class Simulation():
     def __init__(self, scene_master, agent_1, agent_2) -> None:
+
+        self.commitment_log = []
+
         # Initialize the Simulation with a scene master and two agents
         self.scene_master = scene_master
         self.agent_1 = agent_1
@@ -39,11 +41,14 @@ class Simulation():
             self.run_scene(num_interactions_per_scene)
             if scene_index == self.scene_master.total_scenes:
                 print("Simulation Ended")
-                break
-            self.scene_master.summarize()
-            commit_score = self.scene_master.commitment_score(self.scene_master.summarize())
+                return self.commitment_log
+            summary = self.scene_master.summarize()
+            commit_score = self.scene_master.commitment_score(summary)
+            print(summary)
             print(commit_score)
-            self.sm_action = self.scene_master.next_scene()
+            self.log_commitment(scene_index, summary.summary, commit_score["reasoning"], commit_score["commitment_score"])
+            if scene_index < self.scene_master.total_scenes - 1:
+                self.sm_action = self.scene_master.next_scene()
 
     def run_scene(self, num_interactions):
         """
@@ -236,3 +241,12 @@ class Simulation():
         print(f"Simulation loaded from {load_path}")
         self.from_save = True
         return True
+    
+    def log_commitment(self, scene_index,  scene_summary, commitment_score, reasoning):
+        self.commitment_log.append({
+            "scene_number": scene_index,
+            "scene_summary": scene_summary,
+            "commitment_score": commitment_score,
+            "reasoning": reasoning
+        })
+        return self.commitment_log
