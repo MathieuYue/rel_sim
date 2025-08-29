@@ -1,6 +1,6 @@
 from ast import List
 import os, json
-from utils.llm_utils import model_call_unstructured, model_call_structured, parse_model_json
+from utils.llm_utils import model_call_unstructured, model_call_structured, parse_model_json, model_call_unstructured_async, model_call_structured_async
 import utils.general_utils as general_utils
 import relationship_agent.agent_utils as agent_utils
 from relationship_agent.schemas import AgentActionSchema
@@ -90,6 +90,26 @@ class RelationshipAgent():
         self.emotion_state = parse_model_json(response)
         return self.emotion_state
 
+    async def make_choices_async(self, current_narrative, appraisal):
+        template_content = self.prompts['make_choice.j2']
+        
+        # retrievals = self.memory.get_top_memories_from_text(current_narrative, appraisal['emotion_scores'])
+        
+        # Prepare context for the template
+        context_dict = {
+            "agent_name": self.name,
+            "internal_thought": appraisal["inner_thoughts"],
+            "agent_persona": self.agent_state,
+            # "retrieved_memories": retrievals,
+            "previous_narrative": self.memory.format_working_memory(),
+            "current_narrative": current_narrative
+        }
+
+        prompt = render_j2_template(template_content, context_dict)
+        response = await model_call_unstructured_async('', prompt)
+        self.emotion_state = parse_model_json(response)
+        return self.emotion_state
+
     #slightly deprecated, might go back to this version
     def act(self, scene_history, action_question, action_options):
         with open(os.path.join(os.path.dirname(__file__), "json_schemas", "agent_action_schema.json"), "r", encoding="utf-8") as f:
@@ -113,6 +133,27 @@ class RelationshipAgent():
         else:
             raise ValueError("Response could not be converted to AgentActionSchema")
 
+    async def act_async(self, scene_history, action_question, action_options):
+        with open(os.path.join(os.path.dirname(__file__), "json_schemas", "agent_action_schema.json"), "r", encoding="utf-8") as f:
+            agent_action_schema_json = json.load(f)
+        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "action.txt")
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            prompt = f.read()
+        prompt_filled = prompt.replace("{{agent_description}}", self.description)
+        scene_hist_str = general_utils.history_to_str(scene_history)
+        prompt_filled = prompt_filled.replace("{{scene_history}}", scene_hist_str)
+        prompt_filled = prompt_filled.replace("{{action_question}}", action_question)
+
+        options_str = general_utils.list_to_indexed_string(action_options)
+        prompt_filled = prompt_filled.replace("{{action_options}}", options_str)
+        prompt_filled = prompt_filled.replace("{{emotion_state}}", json.dumps(self.emotion_state))
+
+        response = await model_call_structured_async(user_message=prompt_filled, output_format=self.json_schemas["agent_action_schema.json"])
+        response_json = parse_model_json(response)
+        if isinstance(response_json, dict):
+            return AgentActionSchema(**response_json)
+        else:
+            raise ValueError("Response could not be converted to AgentActionSchema")
 
     def reflect(self, scene_history):
         # Use the render_j2_template function to fill the reflection.j2 template with scene history
@@ -128,6 +169,23 @@ class RelationshipAgent():
         prompt = render_j2_template(template_content, context_dict)
         
         response = model_call_unstructured('', prompt)
+        self.emotion_state = parse_model_json(response)
+        return self.emotion_state
+
+    async def reflect_async(self, scene_history):
+        # Use the render_j2_template function to fill the reflection.j2 template with scene history
+        template_content = self.prompts['reflection.j2']
+
+        # Prepare context for the template
+        context_dict = {
+            "agent_information": self.agent_state,
+            "context": "",  # You may want to add more context here if available
+            "conversation_history": general_utils.history_to_str(scene_history)
+        }
+
+        prompt = render_j2_template(template_content, context_dict)
+        
+        response = await model_call_unstructured_async('', prompt)
         self.emotion_state = parse_model_json(response)
         return self.emotion_state
 
@@ -151,6 +209,26 @@ class RelationshipAgent():
             self.emotion_state = None
         return self.emotion_state
 
+    async def appraise_async(self, scene_history):
+        template_content = self.prompts['emotion_appraisal.j2']
+
+        context_dict = {
+            "agent_information": self.agent_state,
+            "context": "",
+            "conversation_history": general_utils.history_to_str(scene_history)
+        }
+
+        prompt = render_j2_template(template_content, context_dict)
+
+        response = await model_call_unstructured_async('', prompt)
+        try:
+            self.emotion_state = parse_model_json(response)
+        except Exception as e:
+            print(f"Error parsing emotion appraisal response: {e}")
+            print(response)
+            self.emotion_state = None
+        return self.emotion_state
+
     def batch_appraise_memory(self, memories, batch_size = 8):
         sys_prompt = self.prompts['batch_appraisal.j2']
         for batch_start in range(0, len(memories), batch_size):
@@ -160,6 +238,24 @@ class RelationshipAgent():
                 memories_str += f"{idx}. {memory}\n"
             print(f"Processing batch {batch_start // batch_size + 1}")
             response = model_call_unstructured(sys_prompt, memories_str, 'qwen3-32b-fp8')
+            try:
+                response_json = parse_model_json(response)
+            except Exception as e:
+                print(f"Error parsing response to JSON: {e}")
+                response_json = None
+            print(response_json)
+            for idx, memory in enumerate(batch):
+                self.memory.add_memory(text = memory, emotion_embedding=response_json[str(idx)], memory_type='memory')
+
+    async def batch_appraise_memory_async(self, memories, batch_size = 8):
+        sys_prompt = self.prompts['batch_appraisal.j2']
+        for batch_start in range(0, len(memories), batch_size):
+            memories_str = ""
+            batch = memories[batch_start:batch_start+batch_size]
+            for idx, memory in enumerate(batch):
+                memories_str += f"{idx}. {memory}\n"
+            print(f"Processing batch {batch_start // batch_size + 1}")
+            response = await model_call_unstructured_async(sys_prompt, memories_str, 'qwen3-32b-fp8')
             try:
                 response_json = parse_model_json(response)
             except Exception as e:

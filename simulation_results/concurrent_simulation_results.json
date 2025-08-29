@@ -1,0 +1,28 @@
+{
+  "successful_simulations": [
+    {
+      "simulation_id": "sim_2",
+      "agent1_name": "Maya",
+      "agent2_name": "Sam",
+      "commitment_log": null,
+      "status": "completed"
+    }
+  ],
+  "failed_simulations": [
+    {
+      "simulation_id": "sim_1",
+      "agent1_name": "Alex",
+      "agent2_name": "Jordan",
+      "error": "1 validation error for SceneSummarySchema\nsummary\n  Field required [type=missing, input_value={'previous_summary': 'Ale...nt living arrangement.\"}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.9/v/missing",
+      "status": "failed"
+    },
+    {
+      "simulation_id": "sim_3",
+      "agent1_name": "Taylor",
+      "agent2_name": "Casey",
+      "error": "'NoneType' object is not subscriptable",
+      "status": "failed"
+    }
+  ],
+  "total_simulations": 3
+}

@@ -1,6 +1,6 @@
 from scene_master.schemas.scene_schema import SceneSchema, ActionSchema, ConversationSchema, SceneSummarySchema
 import utils.general_utils as general_utils
-from utils.llm_utils import model_call_structured, model_call_unstructured, parse_model_json
+from utils.llm_utils import model_call_structured, model_call_unstructured, parse_model_json, model_call_structured_async, model_call_unstructured_async
 import json
 import json5
 import os
@@ -94,6 +94,39 @@ class SceneMaster():
         else:
             raise ValueError("Response could not be converted to SceneSchema")
 
+    async def initialize_async(self):
+        # INSERT_YOUR_CODE
+        turning_points_path = os.path.join(os.path.dirname(__file__), "turing_points.json")
+        with open(turning_points_path, "r", encoding="utf-8") as f:
+            turning_points = json5.load(f)
+        
+        template_content = self.prompts['initialize.j2']
+
+        state = self.scene_state.model_dump_json(indent=2)
+
+        # eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
+        tp_type = self.turningpoint_order[self.progression]
+
+        eligible_scenes = scene_utils.find_scenarios_by_category(turning_points, tp_type)
+
+        context_dict = {
+            "scene_state": state,
+            "eligible_scenes": eligible_scenes,
+            "partner_1": self.agent_1.description,
+            "partner_2": self.agent_2.description
+        }
+
+        prompt = render_j2_template(template_content, context_dict)
+        response = await model_call_unstructured_async('', user_message=prompt)
+        response_json = parse_model_json(response)
+        if isinstance(response_json, dict):
+            self.scene_state = SceneSchema(**response_json)
+            self.agent_1.set_goal(self.scene_state.character_1_goal)
+            self.agent_2.set_goal(self.scene_state.character_2_goal)
+            return self.scene_state
+        else:
+            raise ValueError("Response could not be converted to SceneSchema")
+
     
     def generate_context(self):
     # INSERT_YOUR_CODE
@@ -114,6 +147,25 @@ class SceneMaster():
         response = model_call_unstructured('', prompt)
         return response
 
+    async def generate_context_async(self):
+    # INSERT_YOUR_CODE
+        template_path = os.path.join(os.path.dirname(__file__), "prompts", "next_context.j2")
+        with open(template_path, "r", encoding="utf-8") as f:
+            template_str = f.read()
+        context = {
+            "agent_1_information": self.agent_1.agent_state,
+            "agent_1_emotion_state": self.agent_1.emotion_state,
+            "agent_2_information": self.agent_2.agent_state,
+            "agent_2_emotion_state": self.agent_2.emotion_state,
+            "conversation_history": self.scene_history,
+            "setting": self.scene_state
+        }
+
+        prompt = render_j2_template(template_str, context)
+
+        response = await model_call_unstructured_async('', prompt)
+        return response
+
     def progress(self):
         template_content = self.prompts['progress_narrative.j2']
 
@@ -128,6 +180,33 @@ class SceneMaster():
 
         prompt = render_j2_template(template_content, context_dict)
         response = model_call_unstructured('', prompt)
+        try:
+            response_json = parse_model_json(response)
+        except json.JSONDecodeError as e:
+            print(prompt)
+            print(response)
+            raise ValueError(f"Failed to parse model response as JSON: {e}\nRaw response:\n{response}")
+        try:
+            return ActionSchema(**response_json)
+        except Exception as e:
+            print(f"Error creating ActionSchema: {e}")
+            print(f"Raw response_json: {response_json}")
+            raise
+
+    async def progress_async(self):
+        template_content = self.prompts['progress_narrative.j2']
+
+        state = self.scene_state.model_dump_json(indent=2)
+
+        context_dict = {
+            "partner_1": self.agent_1.description,
+            "partner_2": self.agent_2.description,
+            "scene_history": general_utils.history_to_str(self.scene_history),
+            "scene_conflict": self.scene_state.scene_conflict
+        }
+
+        prompt = render_j2_template(template_content, context_dict)
+        response = await model_call_unstructured_async('', prompt)
         try:
             response_json = parse_model_json(response)
         except json.JSONDecodeError as e:
@@ -167,6 +246,24 @@ class SceneMaster():
             return SceneSummarySchema(**response_json)
         else:
             raise ValueError("Response could not be converted to SummarySchema")
+
+    async def summarize_async(self):
+        
+        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "update_state.txt")
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            prompt = f.read()
+        state = self.scene_state.model_dump_json(indent=2)
+        prompt_filled = prompt.replace("{{scene_state}}", state)
+        scene_hist_str = general_utils.history_to_str(self.scene_history)
+        prompt_filled = prompt_filled.replace("{{scene_history}}", scene_hist_str)
+        
+        # response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["summary_schema.json"], model = 'qwen3-32b-fp8')
+        response = await model_call_unstructured_async('', prompt_filled)
+        response_json = parse_model_json(response)
+        if isinstance(response_json, dict):
+            return SceneSummarySchema(**response_json)
+        else:
+            raise ValueError("Response could not be converted to SummarySchema")
         
     def commitment_score(self, summary):
         template_content = self.prompts['commitment.j2']
@@ -175,6 +272,17 @@ class SceneMaster():
         }
         prompt = render_j2_template(template_content, context_dict)
         response = model_call_unstructured('', prompt)
+        print(response)
+        response_json = parse_model_json(response)
+        return response_json
+
+    async def commitment_score_async(self, summary):
+        template_content = self.prompts['commitment.j2']
+        context_dict = {
+            "relationship_context": self.scene_history
+        }
+        prompt = render_j2_template(template_content, context_dict)
+        response = await model_call_unstructured_async('', prompt)
         print(response)
         response_json = parse_model_json(response)
         return response_json
@@ -240,6 +348,49 @@ class SceneMaster():
         print(prompt)
 
         response = model_call_unstructured('', user_message=prompt)
+        print(response)
+        response_json = parse_model_json(response)
+        if isinstance(response_json, dict):
+            self.scene_state = SceneSchema(**response_json)
+            self.agent_1.set_goal(self.scene_state.character_1_goal)
+            self.agent_2.set_goal(self.scene_state.character_2_goal)
+            return self.scene_state
+        else:
+            raise ValueError("Response could not be converted to SceneSchema")
+
+    async def next_scene_async(self):
+        self.scene_state.current_scene = ''
+        self.scene_state.scene_conflict = ''
+        self.scene_state.character_1_goal = ''
+        self.scene_state.character_2_goal = ''
+        self.scene_history = []
+        self.progression += 1
+
+        turning_points_path = os.path.join(os.path.dirname(__file__), "turing_points.json")
+        with open(turning_points_path, "r", encoding="utf-8") as f:
+            turning_points = json5.load(f)
+        
+        template_content = self.prompts['next_scene.j2']
+
+        state = self.scene_state.model_dump_json(indent=2)
+
+        # eligible_scenes = scene_utils.list_to_string(self.scenes_array[self.progression])
+        tp_type = self.turningpoint_order[self.progression]
+
+        eligible_scenes = scene_utils.find_scenarios_by_category(turning_points, tp_type)
+
+        context_dict = {
+            "scene_state": state,
+            "eligible_scenes": eligible_scenes,
+            "partner_1": self.agent_1.description,
+            "partner_2": self.agent_2.description
+        }
+
+        prompt = render_j2_template(template_content, context_dict)
+
+        print(prompt)
+
+        response = await model_call_unstructured_async('', user_message=prompt)
         print(response)
         response_json = parse_model_json(response)
         if isinstance(response_json, dict):
