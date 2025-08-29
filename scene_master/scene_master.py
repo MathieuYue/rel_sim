@@ -1,6 +1,6 @@
 from scene_master.schemas.scene_schema import SceneSchema, ActionSchema, ConversationSchema, SceneSummarySchema
 import utils.general_utils as general_utils
-from utils.llm_utils import model_call_structured, model_call_unstructured
+from utils.llm_utils import model_call_structured, model_call_unstructured, parse_model_json
 import json
 import json5
 import os
@@ -85,8 +85,7 @@ class SceneMaster():
 
         prompt = render_j2_template(template_content, context_dict)
         response = model_call_unstructured('', user_message=prompt)
-        print(response)
-        response_json = json5.loads(response)
+        response_json = parse_model_json(response)
         if isinstance(response_json, dict):
             self.scene_state = SceneSchema(**response_json)
             self.agent_1.set_goal(self.scene_state.character_1_goal)
@@ -112,7 +111,7 @@ class SceneMaster():
 
         prompt = render_j2_template(template_str, context)
 
-        response = model_call_unstructured('', prompt, model='qwen3-32b-fp8')
+        response = model_call_unstructured('', prompt)
         return response
 
     def progress(self):
@@ -128,9 +127,9 @@ class SceneMaster():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-        response = model_call_unstructured('', prompt, model='qwen3-32b-fp8')
+        response = model_call_unstructured('', prompt)
         try:
-            response_json = json5.loads(response)
+            response_json = parse_model_json(response)
         except json.JSONDecodeError as e:
             print(prompt)
             print(response)
@@ -163,7 +162,7 @@ class SceneMaster():
         
         # response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["summary_schema.json"], model = 'qwen3-32b-fp8')
         response = model_call_unstructured('', prompt_filled)
-        response_json = json5.loads(response)
+        response_json = parse_model_json(response)
         if isinstance(response_json, dict):
             return SceneSummarySchema(**response_json)
         else:
@@ -177,7 +176,7 @@ class SceneMaster():
         prompt = render_j2_template(template_content, context_dict)
         response = model_call_unstructured('', prompt)
         print(response)
-        response_json = json5.loads(response)
+        response_json = parse_model_json(response)
         return response_json
 
     # def next_scene(self):
@@ -242,7 +241,7 @@ class SceneMaster():
 
         response = model_call_unstructured('', user_message=prompt)
         print(response)
-        response_json = json5.loads(response)
+        response_json = parse_model_json(response)
         if isinstance(response_json, dict):
             self.scene_state = SceneSchema(**response_json)
             self.agent_1.set_goal(self.scene_state.character_1_goal)

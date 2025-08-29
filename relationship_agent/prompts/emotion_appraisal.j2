@@ -9,14 +9,20 @@ Your task is to:
 
 Use the following emotion order: joy, acceptance, fear, surprise, sadness, disgust, anger, anticipation
 
+CONSTRAINTS:
+- Output only a single valid JSON object.
+- No comments, no labels, no trailing commas, no extra words.
+- Emotion scores must be exactly 8 floats in [0,1].
+
 ---
 [Your Information]: {{ agent_information }}
 
 [Current context]: {{ conversation_history }}
 
 ---
-Output the result as a valid dictionary in the following format, do not include any other words or literals:
+Output the result as a valid dictionary in the following format, do not include any other words or literals.
+For emotion scores, only output the numeric score, do not include any explanation or other words:
 {
-  "emotion_scores": [<joy>, <acceptance>, <fear>, <surprise>, <sadness>, <disgust>, <anger>, <anticipation>],
+  "emotion_scores": [<numeric score for each emotion>],
   "inner_thoughts": "<your brief emotional reflection>"
 }

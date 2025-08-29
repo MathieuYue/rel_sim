@@ -1,12 +1,13 @@
 from ast import List
 import os, json
-from utils.llm_utils import model_call_unstructured, model_call_structured
+from utils.llm_utils import model_call_unstructured, model_call_structured, parse_model_json
 import utils.general_utils as general_utils
 import relationship_agent.agent_utils as agent_utils
 from relationship_agent.schemas import AgentActionSchema
 import uuid
 from relationship_agent.agent_utils import render_j2_template
 from relationship_agent.memory import Memory
+
 
 class RelationshipAgent():
     def __init__(self, name, persona) -> None:
@@ -86,7 +87,7 @@ class RelationshipAgent():
 
         prompt = render_j2_template(template_content, context_dict)
         response = model_call_unstructured('', prompt)
-        self.emotion_state = json.loads(response)
+        self.emotion_state = parse_model_json(response)
         return self.emotion_state
 
     #slightly deprecated, might go back to this version
@@ -106,7 +107,7 @@ class RelationshipAgent():
         prompt_filled = prompt_filled.replace("{{emotion_state}}", json.dumps(self.emotion_state))
 
         response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["agent_action_schema.json"])
-        response_json = json.loads(response)
+        response_json = parse_model_json(response)
         if isinstance(response_json, dict):
             return AgentActionSchema(**response_json)
         else:
@@ -127,7 +128,7 @@ class RelationshipAgent():
         prompt = render_j2_template(template_content, context_dict)
         
         response = model_call_unstructured('', prompt)
-        self.emotion_state = json.loads(response)
+        self.emotion_state = parse_model_json(response)
         return self.emotion_state
 
     def appraise(self, scene_history):
@@ -141,8 +142,13 @@ class RelationshipAgent():
 
         prompt = render_j2_template(template_content, context_dict)
 
-        response = model_call_unstructured('', prompt, model='qwen3-32b-fp8')
-        self.emotion_state = json.loads(response)
+        response = model_call_unstructured('', prompt)
+        try:
+            self.emotion_state = parse_model_json(response)
+        except Exception as e:
+            print(f"Error parsing emotion appraisal response: {e}")
+            print(response)
+            self.emotion_state = None
         return self.emotion_state
 
     def batch_appraise_memory(self, memories, batch_size = 8):
@@ -155,7 +161,7 @@ class RelationshipAgent():
             print(f"Processing batch {batch_start // batch_size + 1}")
             response = model_call_unstructured(sys_prompt, memories_str, 'qwen3-32b-fp8')
             try:
-                response_json = json.loads(response)
+                response_json = parse_model_json(response)
             except Exception as e:
                 print(f"Error parsing response to JSON: {e}")
                 response_json = None
