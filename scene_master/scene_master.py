@@ -84,15 +84,34 @@ class SceneMaster():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-        response = model_call_unstructured('', user_message=prompt)
-        response_json = parse_model_json(response)
-        if isinstance(response_json, dict):
-            self.scene_state = SceneSchema(**response_json)
-            self.agent_1.set_goal(self.scene_state.character_1_goal)
-            self.agent_2.set_goal(self.scene_state.character_2_goal)
-            return self.scene_state
-        else:
-            raise ValueError("Response could not be converted to SceneSchema")
+        
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model_call_unstructured('', user_message=prompt)
+                response_json = parse_model_json(response)
+                if isinstance(response_json, dict):
+                    self.scene_state = SceneSchema(**response_json)
+                    self.agent_1.set_goal(self.scene_state.character_1_goal)
+                    self.agent_2.set_goal(self.scene_state.character_2_goal)
+                    return self.scene_state
+                else:
+                    raise ValueError("Response could not be converted to SceneSchema")
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def initialize_async(self):
         # INSERT_YOUR_CODE
@@ -117,15 +136,34 @@ class SceneMaster():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-        response = await model_call_unstructured_async('', user_message=prompt)
-        response_json = parse_model_json(response)
-        if isinstance(response_json, dict):
-            self.scene_state = SceneSchema(**response_json)
-            self.agent_1.set_goal(self.scene_state.character_1_goal)
-            self.agent_2.set_goal(self.scene_state.character_2_goal)
-            return self.scene_state
-        else:
-            raise ValueError("Response could not be converted to SceneSchema")
+        
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await model_call_unstructured_async('', user_message=prompt)
+                response_json = parse_model_json(response)
+                if isinstance(response_json, dict):
+                    self.scene_state = SceneSchema(**response_json)
+                    self.agent_1.set_goal(self.scene_state.character_1_goal)
+                    self.agent_2.set_goal(self.scene_state.character_2_goal)
+                    return self.scene_state
+                else:
+                    raise ValueError("Response could not be converted to SceneSchema")
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     
     def generate_context(self):
@@ -144,8 +182,17 @@ class SceneMaster():
 
         prompt = render_j2_template(template_str, context)
 
-        response = model_call_unstructured('', prompt)
-        return response
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model_call_unstructured('', prompt)
+                return response
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to get LLM response after {max_retries} attempts: {e}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def generate_context_async(self):
     # INSERT_YOUR_CODE
@@ -163,8 +210,17 @@ class SceneMaster():
 
         prompt = render_j2_template(template_str, context)
 
-        response = await model_call_unstructured_async('', prompt)
-        return response
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await model_call_unstructured_async('', prompt)
+                return response
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to get LLM response after {max_retries} attempts: {e}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     def progress(self):
         template_content = self.prompts['progress_narrative.j2']
@@ -179,19 +235,28 @@ class SceneMaster():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-        response = model_call_unstructured('', prompt)
-        try:
-            response_json = parse_model_json(response)
-        except json.JSONDecodeError as e:
-            print(prompt)
-            print(response)
-            raise ValueError(f"Failed to parse model response as JSON: {e}\nRaw response:\n{response}")
-        try:
-            return ActionSchema(**response_json)
-        except Exception as e:
-            print(f"Error creating ActionSchema: {e}")
-            print(f"Raw response_json: {response_json}")
-            raise
+        
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model_call_unstructured('', prompt)
+                response_json = parse_model_json(response)
+                return ActionSchema(**response_json)
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def progress_async(self):
         template_content = self.prompts['progress_narrative.j2']
@@ -206,19 +271,28 @@ class SceneMaster():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-        response = await model_call_unstructured_async('', prompt)
-        try:
-            response_json = parse_model_json(response)
-        except json.JSONDecodeError as e:
-            print(prompt)
-            print(response)
-            raise ValueError(f"Failed to parse model response as JSON: {e}\nRaw response:\n{response}")
-        try:
-            return ActionSchema(**response_json)
-        except Exception as e:
-            print(f"Error creating ActionSchema: {e}")
-            print(f"Raw response_json: {response_json}")
-            raise
+        
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await model_call_unstructured_async('', prompt)
+                response_json = parse_model_json(response)
+                return ActionSchema(**response_json)
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     def append_to_history(self, type, action):
         source = ""
@@ -239,13 +313,31 @@ class SceneMaster():
         scene_hist_str = general_utils.history_to_str(self.scene_history)
         prompt_filled = prompt_filled.replace("{{scene_history}}", scene_hist_str)
         
-        # response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["summary_schema.json"], model = 'qwen3-32b-fp8')
-        response = model_call_unstructured('', prompt_filled)
-        response_json = parse_model_json(response)
-        if isinstance(response_json, dict):
-            return SceneSummarySchema(**response_json)
-        else:
-            raise ValueError("Response could not be converted to SummarySchema")
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["summary_schema.json"], model = 'qwen3-32b-fp8')
+                response = model_call_unstructured('', prompt_filled)
+                response_json = parse_model_json(response)
+                if isinstance(response_json, dict):
+                    return SceneSummarySchema(**response_json)
+                else:
+                    raise ValueError("Response could not be converted to SummarySchema")
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def summarize_async(self):
         
@@ -257,13 +349,31 @@ class SceneMaster():
         scene_hist_str = general_utils.history_to_str(self.scene_history)
         prompt_filled = prompt_filled.replace("{{scene_history}}", scene_hist_str)
         
-        # response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["summary_schema.json"], model = 'qwen3-32b-fp8')
-        response = await model_call_unstructured_async('', prompt_filled)
-        response_json = parse_model_json(response)
-        if isinstance(response_json, dict):
-            return SceneSummarySchema(**response_json)
-        else:
-            raise ValueError("Response could not be converted to SummarySchema")
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["summary_schema.json"], model = 'qwen3-32b-fp8')
+                response = await model_call_unstructured_async('', prompt_filled)
+                response_json = parse_model_json(response)
+                if isinstance(response_json, dict):
+                    return SceneSummarySchema(**response_json)
+                else:
+                    raise ValueError("Response could not be converted to SummarySchema")
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
         
     def commitment_score(self, summary):
         template_content = self.prompts['commitment.j2']
@@ -271,10 +381,20 @@ class SceneMaster():
             "relationship_context": self.scene_history
         }
         prompt = render_j2_template(template_content, context_dict)
-        response = model_call_unstructured('', prompt)
-        print(response)
-        response_json = parse_model_json(response)
-        return response_json
+        
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model_call_unstructured('', prompt)
+                response_json = parse_model_json(response)
+                return response_json
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def commitment_score_async(self, summary):
         template_content = self.prompts['commitment.j2']
@@ -282,10 +402,20 @@ class SceneMaster():
             "relationship_context": self.scene_history
         }
         prompt = render_j2_template(template_content, context_dict)
-        response = await model_call_unstructured_async('', prompt)
-        print(response)
-        response_json = parse_model_json(response)
-        return response_json
+        
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await model_call_unstructured_async('', prompt)
+                response_json = parse_model_json(response)
+                return response_json
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     # def next_scene(self):
     #     self.scene_state.current_scene = ''
@@ -345,18 +475,33 @@ class SceneMaster():
 
         prompt = render_j2_template(template_content, context_dict)
 
-        print(prompt)
-
-        response = model_call_unstructured('', user_message=prompt)
-        print(response)
-        response_json = parse_model_json(response)
-        if isinstance(response_json, dict):
-            self.scene_state = SceneSchema(**response_json)
-            self.agent_1.set_goal(self.scene_state.character_1_goal)
-            self.agent_2.set_goal(self.scene_state.character_2_goal)
-            return self.scene_state
-        else:
-            raise ValueError("Response could not be converted to SceneSchema")
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model_call_unstructured('', user_message=prompt)
+                response_json = parse_model_json(response)
+                if isinstance(response_json, dict):
+                    self.scene_state = SceneSchema(**response_json)
+                    self.agent_1.set_goal(self.scene_state.character_1_goal)
+                    self.agent_2.set_goal(self.scene_state.character_2_goal)
+                    return self.scene_state
+                else:
+                    raise ValueError("Response could not be converted to SceneSchema")
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def next_scene_async(self):
         self.scene_state.current_scene = ''
@@ -388,15 +533,30 @@ class SceneMaster():
 
         prompt = render_j2_template(template_content, context_dict)
 
-        print(prompt)
-
-        response = await model_call_unstructured_async('', user_message=prompt)
-        print(response)
-        response_json = parse_model_json(response)
-        if isinstance(response_json, dict):
-            self.scene_state = SceneSchema(**response_json)
-            self.agent_1.set_goal(self.scene_state.character_1_goal)
-            self.agent_2.set_goal(self.scene_state.character_2_goal)
-            return self.scene_state
-        else:
-            raise ValueError("Response could not be converted to SceneSchema")
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await model_call_unstructured_async('', user_message=prompt)
+                response_json = parse_model_json(response)
+                if isinstance(response_json, dict):
+                    self.scene_state = SceneSchema(**response_json)
+                    self.agent_1.set_goal(self.scene_state.character_1_goal)
+                    self.agent_2.set_goal(self.scene_state.character_2_goal)
+                    return self.scene_state
+                else:
+                    raise ValueError("Response could not be converted to SceneSchema")
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")

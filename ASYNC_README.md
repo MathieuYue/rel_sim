@@ -45,6 +45,47 @@ New async methods:
 - `run_auto_async()` - Async automatic simulation execution
 - `run_scene_async()` - Async single scene execution
 
+## Retry Logic for JSON Parsing
+
+All LLM-calling functions now include robust retry logic to handle cases where the LLM output doesn't match the expected JSON schema format:
+
+### How It Works
+
+1. **Automatic Retries**: Each function will retry up to 3 times if the LLM response cannot be parsed as valid JSON
+2. **Error Handling**: If parsing fails after 3 attempts, the function will either:
+   - Raise an exception (for critical operations)
+   - Return a fallback value (for non-critical operations like `appraise()`)
+3. **Detailed Logging**: Each retry attempt is logged with the specific error message
+4. **Raw Response Logging**: If all retries fail, the raw LLM response is logged for debugging
+
+### Functions with Retry Logic
+
+**RelationshipAgent:**
+- `make_choices()` / `make_choices_async()`
+- `act()` / `act_async()`
+- `reflect()` / `reflect_async()`
+- `appraise()` / `appraise_async()`
+- `batch_appraise_memory()` / `batch_appraise_memory_async()`
+
+**SceneMaster:**
+- `initialize()` / `initialize_async()`
+- `generate_context()` / `generate_context_async()`
+- `progress()` / `progress_async()`
+- `summarize()` / `summarize_async()`
+- `commitment_score()` / `commitment_score_async()`
+- `next_scene()` / `next_scene_async()`
+
+### Example Retry Behavior
+
+```python
+# If the LLM returns malformed JSON, the system will retry:
+# Attempt 1: Parse failed, retrying...
+# Attempt 2: Parse failed, retrying...
+# Attempt 3: Parse failed, retrying...
+# Failed to parse LLM response after 3 attempts: [error details]
+# Raw response: [malformed JSON response]
+```
+
 ## Usage Examples
 
 ### Running a Single Async Simulation
@@ -128,7 +169,12 @@ results = asyncio.run(run_multiple_simulations())
    python test_async_functionality.py
    ```
 
-2. **Run multiple simulations concurrently:**
+2. **Test the retry logic:**
+   ```bash
+   python test_retry_logic.py
+   ```
+
+3. **Run multiple simulations concurrently:**
    ```bash
    python run_multiple_simulations.py
    ```
@@ -139,6 +185,7 @@ results = asyncio.run(run_multiple_simulations())
 - **Reduced Total Time**: When running multiple simulations, the total time is significantly reduced
 - **Better Resource Utilization**: CPU and network resources are used more efficiently
 - **Scalability**: Easy to scale up to run dozens or hundreds of simulations
+- **Robustness**: Retry logic ensures simulations continue even with occasional malformed LLM responses
 
 ## Backward Compatibility
 
@@ -153,17 +200,19 @@ You can continue using the existing synchronous API while gradually migrating to
 
 ## Error Handling
 
-The async methods include proper error handling:
-- Exceptions in individual simulations don't affect other concurrent simulations
-- Failed simulations are reported separately from successful ones
-- The `asyncio.gather()` function with `return_exceptions=True` ensures all simulations complete
+The async methods include comprehensive error handling:
+- **Retry Logic**: Automatic retries for malformed JSON responses
+- **Exception Isolation**: Exceptions in individual simulations don't affect other concurrent simulations
+- **Failed Simulation Reporting**: Failed simulations are reported separately from successful ones
+- **Graceful Degradation**: Non-critical functions return fallback values instead of crashing
 
 ## Best Practices
 
 1. **Resource Management**: Be mindful of API rate limits when running many concurrent simulations
 2. **Memory Usage**: Each simulation instance uses memory, so monitor usage with large numbers of concurrent simulations
-3. **Error Handling**: Always handle exceptions appropriately in your async code
-4. **Testing**: Use the provided test script to verify async functionality before running large-scale simulations
+3. **Error Handling**: The retry logic handles most JSON parsing issues automatically
+4. **Testing**: Use the provided test scripts to verify functionality before running large-scale simulations
+5. **Monitoring**: Watch for retry messages in logs to identify potential prompt or schema issues
 
 ## Troubleshooting
 
@@ -172,9 +221,12 @@ The async methods include proper error handling:
 1. **Import Errors**: Ensure you're importing the async functions correctly
 2. **Runtime Errors**: Make sure you're using `await` with async functions
 3. **Memory Issues**: Reduce the number of concurrent simulations if you encounter memory problems
+4. **JSON Parsing Failures**: Check logs for retry messages and raw responses
 
 ### Debugging
 
-- Use the test script to verify basic functionality
+- Use the test scripts to verify basic functionality
 - Check that your API keys are properly configured
 - Monitor network requests and responses for API-related issues
+- Look for retry messages in logs to identify problematic prompts or schemas
+- Examine raw responses when all retries fail to understand the issue

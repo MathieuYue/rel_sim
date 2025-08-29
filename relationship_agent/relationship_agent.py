@@ -86,9 +86,20 @@ class RelationshipAgent():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-        response = model_call_unstructured('', prompt)
-        self.emotion_state = parse_model_json(response)
-        return self.emotion_state
+        
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model_call_unstructured('', prompt)
+                self.emotion_state = parse_model_json(response)
+                return self.emotion_state
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def make_choices_async(self, current_narrative, appraisal):
         template_content = self.prompts['make_choice.j2']
@@ -106,9 +117,20 @@ class RelationshipAgent():
         }
 
         prompt = render_j2_template(template_content, context_dict)
-        response = await model_call_unstructured_async('', prompt)
-        self.emotion_state = parse_model_json(response)
-        return self.emotion_state
+        
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await model_call_unstructured_async('', prompt)
+                self.emotion_state = parse_model_json(response)
+                return self.emotion_state
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     #slightly deprecated, might go back to this version
     def act(self, scene_history, action_question, action_options):
@@ -126,12 +148,30 @@ class RelationshipAgent():
         prompt_filled = prompt_filled.replace("{{action_options}}", options_str)
         prompt_filled = prompt_filled.replace("{{emotion_state}}", json.dumps(self.emotion_state))
 
-        response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["agent_action_schema.json"])
-        response_json = parse_model_json(response)
-        if isinstance(response_json, dict):
-            return AgentActionSchema(**response_json)
-        else:
-            raise ValueError("Response could not be converted to AgentActionSchema")
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model_call_structured(user_message=prompt_filled, output_format=self.json_schemas["agent_action_schema.json"])
+                response_json = parse_model_json(response)
+                if isinstance(response_json, dict):
+                    return AgentActionSchema(**response_json)
+                else:
+                    raise ValueError("Response could not be converted to AgentActionSchema")
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def act_async(self, scene_history, action_question, action_options):
         with open(os.path.join(os.path.dirname(__file__), "json_schemas", "agent_action_schema.json"), "r", encoding="utf-8") as f:
@@ -148,12 +188,30 @@ class RelationshipAgent():
         prompt_filled = prompt_filled.replace("{{action_options}}", options_str)
         prompt_filled = prompt_filled.replace("{{emotion_state}}", json.dumps(self.emotion_state))
 
-        response = await model_call_structured_async(user_message=prompt_filled, output_format=self.json_schemas["agent_action_schema.json"])
-        response_json = parse_model_json(response)
-        if isinstance(response_json, dict):
-            return AgentActionSchema(**response_json)
-        else:
-            raise ValueError("Response could not be converted to AgentActionSchema")
+        # Retry logic for JSON parsing and schema validation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await model_call_structured_async(user_message=prompt_filled, output_format=self.json_schemas["agent_action_schema.json"])
+                response_json = parse_model_json(response)
+                if isinstance(response_json, dict):
+                    return AgentActionSchema(**response_json)
+                else:
+                    raise ValueError("Response could not be converted to AgentActionSchema")
+            except (ValueError, TypeError) as e:
+                # Schema validation error
+                if attempt == max_retries - 1:
+                    print(f"Failed to validate schema after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed (schema validation), retrying... Error: {e}")
+            except Exception as e:
+                # Other errors (JSON parsing, network, etc.)
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     def reflect(self, scene_history):
         # Use the render_j2_template function to fill the reflection.j2 template with scene history
@@ -168,9 +226,19 @@ class RelationshipAgent():
 
         prompt = render_j2_template(template_content, context_dict)
         
-        response = model_call_unstructured('', prompt)
-        self.emotion_state = parse_model_json(response)
-        return self.emotion_state
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model_call_unstructured('', prompt)
+                self.emotion_state = parse_model_json(response)
+                return self.emotion_state
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def reflect_async(self, scene_history):
         # Use the render_j2_template function to fill the reflection.j2 template with scene history
@@ -185,9 +253,19 @@ class RelationshipAgent():
 
         prompt = render_j2_template(template_content, context_dict)
         
-        response = await model_call_unstructured_async('', prompt)
-        self.emotion_state = parse_model_json(response)
-        return self.emotion_state
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await model_call_unstructured_async('', prompt)
+                self.emotion_state = parse_model_json(response)
+                return self.emotion_state
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    raise
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     def appraise(self, scene_history):
         template_content = self.prompts['emotion_appraisal.j2']
@@ -200,14 +278,20 @@ class RelationshipAgent():
 
         prompt = render_j2_template(template_content, context_dict)
 
-        response = model_call_unstructured('', prompt)
-        try:
-            self.emotion_state = parse_model_json(response)
-        except Exception as e:
-            print(f"Error parsing emotion appraisal response: {e}")
-            print(response)
-            self.emotion_state = None
-        return self.emotion_state
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model_call_unstructured('', prompt)
+                self.emotion_state = parse_model_json(response)
+                return self.emotion_state
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    self.emotion_state = None
+                    return self.emotion_state
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def appraise_async(self, scene_history):
         template_content = self.prompts['emotion_appraisal.j2']
@@ -220,14 +304,20 @@ class RelationshipAgent():
 
         prompt = render_j2_template(template_content, context_dict)
 
-        response = await model_call_unstructured_async('', prompt)
-        try:
-            self.emotion_state = parse_model_json(response)
-        except Exception as e:
-            print(f"Error parsing emotion appraisal response: {e}")
-            print(response)
-            self.emotion_state = None
-        return self.emotion_state
+        # Retry logic for JSON parsing
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await model_call_unstructured_async('', prompt)
+                self.emotion_state = parse_model_json(response)
+                return self.emotion_state
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                    print(f"Raw response: {response}")
+                    self.emotion_state = None
+                    return self.emotion_state
+                print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     def batch_appraise_memory(self, memories, batch_size = 8):
         sys_prompt = self.prompts['batch_appraisal.j2']
@@ -237,15 +327,23 @@ class RelationshipAgent():
             for idx, memory in enumerate(batch):
                 memories_str += f"{idx}. {memory}\n"
             print(f"Processing batch {batch_start // batch_size + 1}")
-            response = model_call_unstructured(sys_prompt, memories_str, 'qwen3-32b-fp8')
-            try:
-                response_json = parse_model_json(response)
-            except Exception as e:
-                print(f"Error parsing response to JSON: {e}")
-                response_json = None
-            print(response_json)
-            for idx, memory in enumerate(batch):
-                self.memory.add_memory(text = memory, emotion_embedding=response_json[str(idx)], memory_type='memory')
+            
+            # Retry logic for JSON parsing
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = model_call_unstructured(sys_prompt, memories_str, 'qwen3-32b-fp8')
+                    response_json = parse_model_json(response)
+                    for idx, memory in enumerate(batch):
+                        self.memory.add_memory(text = memory, emotion_embedding=response_json[str(idx)], memory_type='memory')
+                    break  # Success, exit retry loop
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                        print(f"Raw response: {response}")
+                        response_json = None
+                    else:
+                        print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     async def batch_appraise_memory_async(self, memories, batch_size = 8):
         sys_prompt = self.prompts['batch_appraisal.j2']
@@ -255,15 +353,23 @@ class RelationshipAgent():
             for idx, memory in enumerate(batch):
                 memories_str += f"{idx}. {memory}\n"
             print(f"Processing batch {batch_start // batch_size + 1}")
-            response = await model_call_unstructured_async(sys_prompt, memories_str, 'qwen3-32b-fp8')
-            try:
-                response_json = parse_model_json(response)
-            except Exception as e:
-                print(f"Error parsing response to JSON: {e}")
-                response_json = None
-            print(response_json)
-            for idx, memory in enumerate(batch):
-                self.memory.add_memory(text = memory, emotion_embedding=response_json[str(idx)], memory_type='memory')
+            
+            # Retry logic for JSON parsing
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = await model_call_unstructured_async(sys_prompt, memories_str, 'qwen3-32b-fp8')
+                    response_json = parse_model_json(response)
+                    for idx, memory in enumerate(batch):
+                        self.memory.add_memory(text = memory, emotion_embedding=response_json[str(idx)], memory_type='memory')
+                    break  # Success, exit retry loop
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        print(f"Failed to parse LLM response after {max_retries} attempts: {e}")
+                        print(f"Raw response: {response}")
+                        response_json = None
+                    else:
+                        print(f"Attempt {attempt + 1} failed, retrying... Error: {e}")
 
     def set_goal(self, goal):
         self.agent_state["goal"] = goal
